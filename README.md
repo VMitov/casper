@@ -1,6 +1,9 @@
 # CASPER
 _Configuration Automation for Safe and Painless Environment Releases_
 
+[![Build Status](https://secure.travis-ci.org/miracl/casper.png?branch=master)](https://travis-ci.org/miracl/casper?branch=master)
+[![Coverage Status](https://coveralls.io/repos/miracl/casper/badge.svg?branch=master&service=github)](https://coveralls.io/github/miracl/casper?branch=master)
+
 ## Description
 
 Casper is a simple tool for managing configurations as code where the structure of the configurations is separated from the values themselves. That way you can use the same structure for different environments. The structure of the configurations is described in a template file. Overall the tool combines the template file with all the values, serializes it to a format applicable for the configuration storage and pushes the changes to the storage.
