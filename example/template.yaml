@@ -1,0 +1,2 @@
+key1: {{.placeholder1}}
+key2: {{.placeholder2}}

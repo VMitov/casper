@@ -1,0 +1,11 @@
+template: template.yaml
+format: string
+sources:
+  - type: config
+    vals:
+      placeholder1: val1
+      placeholder2: val2
+storage:
+  type: file
+  config:
+    path: output.yaml
