@@ -84,7 +84,7 @@ func pushRun(tmpl, format, key string, sourcesList []map[string]interface{}, sto
 		// prompt for agreement
 		fmt.Print("Continue[y/N]: ")
 		input, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		if strings.ToLower(strings.TrimRight(input, "\n")) != "y" {
+		if strings.ToLower(strings.TrimRight(input, "\r\n")) != "y" {
 			fmt.Println("Canceled")
 			return nil
 		}
