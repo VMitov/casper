@@ -130,7 +130,7 @@ func TestGetMultiSourcer(t *testing.T) {
 	}{
 		{
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": map[interface{}]interface{}{
 						"key1": "var1",
@@ -146,7 +146,7 @@ func TestGetMultiSourcer(t *testing.T) {
 		},
 		{
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"sourceType": "config",
 				},
 			},
@@ -155,7 +155,7 @@ func TestGetMultiSourcer(t *testing.T) {
 		},
 		{
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": 42,
 				},
 			},
@@ -164,7 +164,7 @@ func TestGetMultiSourcer(t *testing.T) {
 		},
 		{
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "invalid sourcer type",
 				},
 			},
@@ -173,7 +173,7 @@ func TestGetMultiSourcer(t *testing.T) {
 		},
 		{
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": 42,
 				},

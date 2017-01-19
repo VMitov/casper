@@ -15,6 +15,7 @@ var funcMap = template.FuncMap{
 	"quote":   quote,
 }
 
+// BuildConfig represent a configuration
 type BuildConfig struct {
 	Tmlp   io.Reader
 	Source source.ValuesSourcer

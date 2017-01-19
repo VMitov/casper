@@ -11,24 +11,24 @@ import (
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
-// Implementation of the storage interface that stores in file.
+// fileStorage is an implementation of the storage interface that stores in file.
 // This implementation is mostly for testing.
-type FileStorage struct {
+type fileStorage struct {
 	path string
 }
 
-var errFilePath = errors.New("File store path is invalid type.")
+var errFilePath = errors.New("file store path is invalid type")
 
-func NewFileStorageConfig(config map[string]interface{}) (storage, error) {
+func newFileStorageConfig(config map[string]interface{}) (storage, error) {
 	path, ok := config["path"].(string)
 	if !ok {
 		return nil, errFilePath
 	}
 
-	return &FileStorage{path}, nil
+	return &fileStorage{path}, nil
 }
 
-func (s FileStorage) String(format string) (string, error) {
+func (s fileStorage) String(format string) (string, error) {
 	data, err := ioutil.ReadFile(s.path)
 	if err != nil {
 		return "", err
@@ -37,31 +37,35 @@ func (s FileStorage) String(format string) (string, error) {
 	return string(data), nil
 }
 
-func (s FileStorage) FormatIsValid(format string) bool {
+// FormatIsValid returns if the format is valid for this storage
+func (s fileStorage) FormatIsValid(format string) bool {
 	return true
 }
 
-func (s FileStorage) DefaultFormat() string {
+// DefaultFormat returns the default format
+func (s fileStorage) DefaultFormat() string {
 	return "string"
 }
 
-func (s FileStorage) GetChanges(config []byte, format, key string) (changes, error) {
+// GetChanges returns changes between the config and the fileStorage content
+func (s fileStorage) GetChanges(config []byte, format, key string) (changes, error) {
 	data, err := ioutil.ReadFile(s.path)
 	if err != nil {
 		return nil, err
 	}
 
 	if bytes.Compare(data, config) == 0 {
-		return FileChanges{}, nil
+		return fileChanges{}, nil
 	}
-	return FileChanges{data, config}, nil
+	return fileChanges{data, config}, nil
 }
 
-func (s FileStorage) Diff(cs changes, pretty bool) string {
+// Diff returns the visual representation of the changes
+func (s fileStorage) Diff(cs changes, pretty bool) string {
 	if cs.Len() == 0 {
 		return ""
 	}
-	c := cs.(FileChanges)
+	c := cs.(fileChanges)
 
 	if pretty {
 		dmp := diffmatchpatch.New()
@@ -71,8 +75,9 @@ func (s FileStorage) Diff(cs changes, pretty bool) string {
 	return fmt.Sprintf("-%v\n+%v", string(c.old), string(c.new))
 }
 
-func (s FileStorage) Push(cs changes) error {
-	c := cs.(FileChanges)
+// Push changes the storage with the given changes
+func (s fileStorage) Push(cs changes) error {
+	c := cs.(fileChanges)
 
 	f, err := os.OpenFile(s.path, os.O_WRONLY, 0777)
 	if err != nil {
@@ -89,12 +94,12 @@ func (s FileStorage) Push(cs changes) error {
 	return nil
 }
 
-type FileChanges struct {
+type fileChanges struct {
 	old []byte
 	new []byte
 }
 
-func (c FileChanges) Len() int {
+func (c fileChanges) Len() int {
 	if len(c.old) == 0 && len(c.new) == 0 {
 		return 0
 	}

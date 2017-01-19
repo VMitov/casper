@@ -73,7 +73,7 @@ func TestGetChanges(t *testing.T) {
 		pairs   api.KVPairs
 		config  []byte
 		format  string
-		changes []ConsulChange
+		changes []Change
 		ok      bool
 	}{
 		{nil, []byte("{}"), "json", nil, true},
@@ -91,7 +91,7 @@ func TestGetChanges(t *testing.T) {
 				&api.KVPair{Key: "key1", Value: []byte("val1")},
 			},
 			[]byte(`{"key1": "val1", "key2": "val2"}`), "json",
-			[]ConsulChange{
+			[]Change{
 				{ConsulAdd, "key2", "", "val2"},
 			},
 			true,
@@ -102,7 +102,7 @@ func TestGetChanges(t *testing.T) {
 				&api.KVPair{Key: "key2", Value: []byte("val2")},
 			},
 			[]byte(`{"key1": "val1"}`), "json",
-			[]ConsulChange{
+			[]Change{
 				{ConsulRemove, "key2", "val2", ""},
 			},
 			true,
@@ -113,7 +113,7 @@ func TestGetChanges(t *testing.T) {
 				&api.KVPair{Key: "key2", Value: []byte("val0")},
 			},
 			[]byte(`{"key1": "val1", "key2": "val2"}`), "json",
-			[]ConsulChange{
+			[]Change{
 				{ConsulUpdate, "key2", "val0", "val2"},
 			},
 			true,

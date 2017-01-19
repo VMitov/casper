@@ -1,4 +1,3 @@
-// Consul map implementation
 package consul
 
 // Consul nested key separator
@@ -9,6 +8,7 @@ var (
 	folderValKey = "_value"
 )
 
+// NestedMap is a map type for parsing consul key/values in nested structure
 type NestedMap map[string]interface{}
 
 // Add value to NestedMap with nested key separated with keySep

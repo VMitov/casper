@@ -6,7 +6,7 @@ func (e dupKeyError) Error() string {
 	return "Duplicated key: " + string(e)
 }
 
-// Collection of value sources
+// NewMultiSourcer create source that is a collection of value sources
 func NewMultiSourcer(vss ...ValuesSourcer) (*Source, error) {
 	vars := map[string]interface{}{}
 
