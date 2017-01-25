@@ -16,7 +16,7 @@ func TestGetStorage(t *testing.T) {
 	}
 
 	storages = map[string]func(map[string]interface{}) (storage, error){
-		"test": NewTestStorage,
+		"test": newTestStorage,
 	}
 
 	for i, tc := range testCases {
@@ -42,22 +42,22 @@ func TestGetStorage(t *testing.T) {
 	}
 }
 
-type TestStorage struct{}
+type testStorage struct{}
 
-func (TestStorage) String(string) (string, error) {
+func (testStorage) String(string) (string, error) {
 	return "TEST", nil
 }
 
-func (s TestStorage) FormatIsValid(format string) bool {
+func (s testStorage) FormatIsValid(format string) bool {
 	return true
 }
 
-func (s TestStorage) DefaultFormat() string {
+func (s testStorage) DefaultFormat() string {
 	return "plain"
 }
 
-func NewTestStorage(config map[string]interface{}) (storage, error) {
-	return &TestStorage{}, nil
+func newTestStorage(config map[string]interface{}) (storage, error) {
+	return &testStorage{}, nil
 }
 
 type TestChange struct{}
@@ -66,14 +66,14 @@ func (c TestChange) Len() int {
 	return 0
 }
 
-func (TestStorage) GetChanges(config []byte, format, key string) (changes, error) {
+func (testStorage) GetChanges(config []byte, format, key string) (changes, error) {
 	return TestChange{}, nil
 }
 
-func (TestStorage) Diff(cs changes, pretty bool) string {
+func (testStorage) Diff(cs changes, pretty bool) string {
 	return ""
 }
 
-func (TestStorage) Push(cs changes) error {
+func (testStorage) Push(cs changes) error {
 	return nil
 }

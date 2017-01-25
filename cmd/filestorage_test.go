@@ -25,7 +25,7 @@ func TestFileStorageString(t *testing.T) {
 			}
 			defer os.Remove(f.Name())
 
-			s, err := NewFileStorageConfig(map[string]interface{}{"path": f.Name()})
+			s, err := newFileStorageConfig(map[string]interface{}{"path": f.Name()})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -73,7 +73,7 @@ func TestFileStorageDiff(t *testing.T) {
 			}
 			defer os.Remove(f.Name())
 
-			s, err := NewFileStorageConfig(map[string]interface{}{"path": f.Name()})
+			s, err := newFileStorageConfig(map[string]interface{}{"path": f.Name()})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -116,7 +116,7 @@ func TestFileStoragePush(t *testing.T) {
 			}
 			defer os.Remove(f.Name())
 
-			s, err := NewFileStorageConfig(map[string]interface{}{"path": f.Name()})
+			s, err := newFileStorageConfig(map[string]interface{}{"path": f.Name()})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -163,7 +163,7 @@ func TestFileStorageFormats(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &FileStorage{}
+			s := &fileStorage{}
 
 			if !s.FormatIsValid(tc.fmt) {
 				t.Errorf("%v should have been valid", tc.fmt)

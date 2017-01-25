@@ -16,6 +16,7 @@ func (e formatError) Error() string {
 	return "Invalid file source format " + string(e)
 }
 
+// NewFileSource creates a source of type file
 func NewFileSource(r io.Reader, format string) (*Source, error) {
 	if r == nil {
 		return &Source{}, nil

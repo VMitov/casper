@@ -9,6 +9,16 @@ os:
   - osx
 
 before_install:
+  - go get github.com/golang/lint/golint
   - go get github.com/mattn/goveralls
+
+install:
+  - echo "This is an override of the default install deps step in travis."
+
+before_script:
+  - go vet $(go list ./... | grep -v vendor)
+  - test -z "$(gofmt -s -l . |& grep -v vendor | tee /dev/stderr)"
+  - go list ./... | grep -v /vendor/ | xargs -L1 golint
+
 script:
   - goveralls -service=travis-ci
