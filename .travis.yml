@@ -17,7 +17,7 @@ install:
 
 before_script:
   - go vet $(go list ./... | grep -v vendor)
-  - test -z "$(gofmt -s -l . |& grep -v vendor | tee /dev/stderr)"
+  - test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"
   - go list ./... | grep -v /vendor/ | xargs -L1 golint
 
 script:
