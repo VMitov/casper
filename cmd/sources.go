@@ -124,11 +124,11 @@ func toStringMapString(in interface{}) (map[string]interface{}, error) {
 		}
 	case map[interface{}]interface{}:
 		for k, v := range val {
-			kStr, ok := toString(k)
+			s, ok := toString(k)
 			if !ok {
 				return nil, convertError{k, "string"}
 			}
-			body[kStr] = v
+			body[s] = v
 		}
 	default:
 		return nil, convertError{in, "map[string]interface{}"}

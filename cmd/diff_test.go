@@ -20,7 +20,7 @@ func TestDiffRun(t *testing.T) {
 			`key: oldval`,
 			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": map[string]string{
 						"placeholder": "val",
@@ -35,7 +35,7 @@ func TestDiffRun(t *testing.T) {
 			`key: val`,
 			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": map[string]string{
 						"placeholder": "val",
@@ -87,7 +87,7 @@ func TestDiff(t *testing.T) {
 			`key: oldval`,
 			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": map[string]string{
 						"placeholder": "val",
@@ -102,7 +102,7 @@ func TestDiff(t *testing.T) {
 			`key: val`,
 			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": map[string]string{
 						"placeholder": "val",
@@ -129,7 +129,7 @@ func TestDiff(t *testing.T) {
 			}
 			defer os.Remove(strf.Name())
 
-			configJson, err := json.Marshal(map[string]interface{}{
+			configJSON, err := json.Marshal(map[string]interface{}{
 				"template": tmplf.Name(),
 				"format":   "yaml",
 				"sources":  tc.sources,
@@ -145,7 +145,7 @@ func TestDiff(t *testing.T) {
 			}
 
 			// Prepare config
-			cfgf, err := caspertest.PrepareTmpFile(fmt.Sprintf("Case%vConfig.yaml", i), configJson)
+			cfgf, err := caspertest.PrepareTmpFile(fmt.Sprintf("Case%vConfig.yaml", i), configJSON)
 			if err != nil {
 				t.Fatal(err)
 			}

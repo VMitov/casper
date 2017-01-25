@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// GetStdout runs a function and returns the stdout from it
 func GetStdout(t *testing.T, f func()) string {
 	old := os.Stdout // keep backup of the real stdout
 	defer func() { os.Stdout = old }()

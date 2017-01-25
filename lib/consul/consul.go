@@ -1,3 +1,4 @@
+// Package consul contains helper functions for consul storage
 package consul
 
 import (
@@ -11,21 +12,25 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-type ConsulAction int
+// Action represent possible consul changes
+type Action int
 
+// Actions for consul storage
 const (
-	ConsulAdd ConsulAction = iota
+	ConsulAdd Action = iota
 	ConsulUpdate
 	ConsulRemove
 )
 
-type ConsulChange struct {
-	Action ConsulAction
+// Change represents single consul change
+type Change struct {
+	Action Action
 	Key    string
 	Val    string
 	NewVal string
 }
 
+// KVPairsToMap creates NestedMap from Consul KVPairs
 func KVPairsToMap(pairs api.KVPairs) *NestedMap {
 	j := &NestedMap{}
 	for _, p := range pairs {
@@ -34,13 +39,14 @@ func KVPairsToMap(pairs api.KVPairs) *NestedMap {
 	return j
 }
 
-func GetChanges(pairs api.KVPairs, config []byte, format string) ([]ConsulChange, error) {
+// GetChanges creates collection of changes from Consul KVPairs
+func GetChanges(pairs api.KVPairs, config []byte, format string) ([]Change, error) {
 	kv, err := stringToMap(config, format)
 	if err != nil {
 		return nil, err
 	}
 
-	changes := []ConsulChange{}
+	changes := []Change{}
 
 	// Index current config and collect removals
 	curKV := map[string]string{}
@@ -49,7 +55,7 @@ func GetChanges(pairs api.KVPairs, config []byte, format string) ([]ConsulChange
 
 		// Check for removal
 		if _, ok := kv[p.Key]; !ok {
-			changes = append(changes, ConsulChange{ConsulRemove, p.Key, string(p.Value), ""})
+			changes = append(changes, Change{ConsulRemove, p.Key, string(p.Value), ""})
 		}
 
 	}
@@ -58,7 +64,7 @@ func GetChanges(pairs api.KVPairs, config []byte, format string) ([]ConsulChange
 	for k, v := range kv {
 		curVal, ok := curKV[k]
 		if !ok {
-			changes = append(changes, ConsulChange{ConsulAdd, k, "", v})
+			changes = append(changes, Change{ConsulAdd, k, "", v})
 			continue
 		}
 
@@ -66,7 +72,7 @@ func GetChanges(pairs api.KVPairs, config []byte, format string) ([]ConsulChange
 			continue
 		}
 
-		changes = append(changes, ConsulChange{ConsulUpdate, k, curVal, v})
+		changes = append(changes, Change{ConsulUpdate, k, curVal, v})
 
 	}
 

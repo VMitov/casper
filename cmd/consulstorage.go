@@ -13,7 +13,8 @@ import (
 	"github.com/miracl/casper/lib/diff"
 )
 
-// Interface that consul KV type implements. Defined and used mainly for testing.
+// ConsulKV is interface that consul KV type implements.
+// Defined and used mainly for testing.
 type ConsulKV interface {
 	List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryMeta, error)
 	Put(p *api.KVPair, q *api.WriteOptions) (*api.WriteMeta, error)
@@ -22,13 +23,13 @@ type ConsulKV interface {
 
 var consulFormats = []string{"json", "yaml", "jsonraw"}
 
-type ConsulStorage struct {
+type consulStorage struct {
 	kv ConsulKV
 
 	formats []string
 }
 
-var errConsulAddr = errors.New("Consul addr is invalid type.")
+var errConsulAddr = errors.New("Consul addr is invalid type")
 
 type changeError struct {
 	c interface{}
@@ -38,16 +39,16 @@ func (e changeError) Error() string {
 	return fmt.Sprintf("Consul: Invalid change type: %T", e.c)
 }
 
-func NewConsulStorageConfig(config map[string]interface{}) (storage, error) {
+func newConsulStorageConfig(config map[string]interface{}) (storage, error) {
 	strAddr, ok := config["addr"].(string)
 	if !ok {
 		return nil, errConsulAddr
 	}
 
-	return NewConsulStorage(strAddr)
+	return newConsulStorage(strAddr)
 }
 
-func NewConsulStorage(addr string) (storage, error) {
+func newConsulStorage(addr string) (storage, error) {
 	cfg := &api.Config{}
 	if addr != "" {
 		addr, err := url.Parse(addr)
@@ -63,10 +64,10 @@ func NewConsulStorage(addr string) (storage, error) {
 		return nil, err
 	}
 
-	return &ConsulStorage{client.KV(), consulFormats}, nil
+	return &consulStorage{client.KV(), consulFormats}, nil
 }
 
-func (s ConsulStorage) String(format string) (string, error) {
+func (s consulStorage) String(format string) (string, error) {
 	pairs, _, err := s.kv.List("", nil)
 	if err != nil {
 		return "", err
@@ -74,7 +75,7 @@ func (s ConsulStorage) String(format string) (string, error) {
 	return kvPairsToString(pairs, format), nil
 }
 
-func (s ConsulStorage) FormatIsValid(format string) bool {
+func (s consulStorage) FormatIsValid(format string) bool {
 	for _, f := range s.formats {
 		if format == f {
 			return true
@@ -83,11 +84,11 @@ func (s ConsulStorage) FormatIsValid(format string) bool {
 	return false
 }
 
-func (s ConsulStorage) DefaultFormat() string {
+func (s consulStorage) DefaultFormat() string {
 	return s.formats[0]
 }
 
-func (s ConsulStorage) GetChanges(config []byte, format, key string) (changes, error) {
+func (s consulStorage) GetChanges(config []byte, format, key string) (changes, error) {
 	pairs, _, err := s.kv.List("", nil)
 	if err != nil {
 		return nil, err
@@ -96,11 +97,11 @@ func (s ConsulStorage) GetChanges(config []byte, format, key string) (changes, e
 	return getChanges(pairs, config, format, key)
 }
 
-func (ConsulStorage) Diff(cs changes, pretty bool) string {
+func (consulStorage) Diff(cs changes, pretty bool) string {
 	return diff.Diff(cs.(diff.KVChanges), pretty)
 }
 
-func (s ConsulStorage) Push(cs changes) error {
+func (s consulStorage) Push(cs changes) error {
 	for _, ci := range cs.(diff.KVChanges) {
 		if err := s.push(ci); err != nil {
 			return err
@@ -109,7 +110,7 @@ func (s ConsulStorage) Push(cs changes) error {
 	return nil
 }
 
-func (s ConsulStorage) push(change interface{}) error {
+func (s consulStorage) push(change interface{}) error {
 	switch c := change.(type) {
 	case *diff.Add:
 		_, err := s.kv.Put(&api.KVPair{Key: c.Key(), Value: []byte(c.Val())}, nil)

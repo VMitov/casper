@@ -23,7 +23,7 @@ func TestNewConsulStorage(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			_, err := NewConsulStorageConfig(map[string]interface{}{"addr": tc.addr})
+			_, err := newConsulStorageConfig(map[string]interface{}{"addr": tc.addr})
 			if tc.ok != (err == nil) {
 				if err != nil {
 					t.Fatal(err)
@@ -57,7 +57,7 @@ func (kv *ConsulKVMock) Delete(key string, w *api.WriteOptions) (*api.WriteMeta,
 	return nil, nil
 }
 
-var ConsulKVMockError = errors.New("ConsulKVMockError")
+var ErrConsulKVMock = errors.New("ErrConsulKVMock")
 
 func TestConsulStorageString(t *testing.T) {
 	testCases := []struct {
@@ -78,15 +78,15 @@ func TestConsulStorageString(t *testing.T) {
 			api.KVPairs{
 				&api.KVPair{Key: "key1", Value: []byte("val1")},
 			},
-			ConsulKVMockError,
+			ErrConsulKVMock,
 			``,
-			ConsulKVMockError,
+			ErrConsulKVMock,
 		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &ConsulStorage{&ConsulKVMock{list: tc.list, listErr: tc.listErr}, []string{"jsonraw"}}
+			s := &consulStorage{&ConsulKVMock{list: tc.list, listErr: tc.listErr}, []string{"jsonraw"}}
 			str, err := s.String("jsonraw")
 			if err != tc.err {
 				t.Fatalf("Got %v; want %v", err, tc.err)
@@ -129,7 +129,7 @@ func TestConsulStoragePush(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &ConsulStorage{&ConsulKVMock{list: tc.list}, []string{"jsonraw	"}}
+			s := &consulStorage{&ConsulKVMock{list: tc.list}, []string{"jsonraw	"}}
 
 			cs, err := s.GetChanges([]byte(tc.config), "jsonraw", "")
 			if err != nil {
@@ -200,7 +200,7 @@ func TestConsulStorageFormats(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &ConsulStorage{&ConsulKVMock{}, tc.formats}
+			s := &consulStorage{&ConsulKVMock{}, tc.formats}
 
 			if s.FormatIsValid(tc.fmt) != tc.valid {
 				t.Errorf("%v should have been valid:%v", tc.fmt, tc.valid)

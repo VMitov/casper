@@ -60,7 +60,7 @@ func TestFetch(t *testing.T) {
 			}
 			defer os.Remove(strf.Name())
 
-			configJson, err := json.Marshal(map[string]interface{}{
+			configJSON, err := json.Marshal(map[string]interface{}{
 				"storage": map[string]interface{}{
 					"type": "file",
 					"config": map[string]string{
@@ -73,7 +73,7 @@ func TestFetch(t *testing.T) {
 			}
 
 			// Prepare config
-			cfgf, err := caspertest.PrepareTmpFile(fmt.Sprintf("Case%vConfig.yaml", i), configJson)
+			cfgf, err := caspertest.PrepareTmpFile(fmt.Sprintf("Case%vConfig.yaml", i), configJSON)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -17,8 +17,8 @@ type changes interface {
 
 var (
 	storages = map[string]func(map[string]interface{}) (storage, error){
-		"consul": NewConsulStorageConfig,
-		"file":   NewFileStorageConfig,
+		"consul": newConsulStorageConfig,
+		"file":   newFileStorageConfig,
 	}
 )
 

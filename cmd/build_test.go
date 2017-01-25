@@ -21,7 +21,7 @@ func TestBuildConfig(t *testing.T) {
 		{
 			"key1: {{.key1}}, key2: {{.key2}}",
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": map[interface{}]interface{}{
 						"key1": "var1",
@@ -35,7 +35,7 @@ func TestBuildConfig(t *testing.T) {
 		{
 			"key1: {{.key1}}, key2: {{.key2}}",
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "bad",
 				},
 			},
@@ -86,7 +86,7 @@ func TestBuildRun(t *testing.T) {
 		{
 			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": map[string]string{
 						"placeholder": "val",
@@ -129,7 +129,7 @@ func TestBuild(t *testing.T) {
 		{
 			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"type": "config",
 					"vals": map[string]string{
 						"placeholder": "val",
@@ -149,7 +149,7 @@ func TestBuild(t *testing.T) {
 			}
 			defer os.Remove(tmplf.Name())
 
-			configJson, err := json.Marshal(map[string]interface{}{
+			configJSON, err := json.Marshal(map[string]interface{}{
 				"template": tmplf.Name(),
 				"sources":  tc.sources,
 			})
@@ -158,7 +158,7 @@ func TestBuild(t *testing.T) {
 			}
 
 			// Prepare config
-			cfgf, err := caspertest.PrepareTmpFile(fmt.Sprintf("Case%vConfig.yaml", i), configJson)
+			cfgf, err := caspertest.PrepareTmpFile(fmt.Sprintf("Case%vConfig.yaml", i), configJSON)
 			if err != nil {
 				t.Fatal(err)
 			}

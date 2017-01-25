@@ -2,6 +2,7 @@ package caspertest
 
 import "os"
 
+// PrepareTmpFile create a file with the given content
 func PrepareTmpFile(name string, data []byte) (*os.File, error) {
 	f, err := os.Create(name)
 	if err != nil {
