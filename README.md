@@ -3,6 +3,7 @@ _Configuration Automation for Safe and Painless Environment Releases_
 
 [![Build Status](https://secure.travis-ci.org/miracl/casper.png?branch=master)](https://travis-ci.org/miracl/casper?branch=master)
 [![Coverage Status](https://coveralls.io/repos/miracl/casper/badge.svg?branch=master&service=github)](https://coveralls.io/github/miracl/casper?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/miracl/casper)](https://goreportcard.com/report/github.com/miracl/casper)
 
 ## Description
 
