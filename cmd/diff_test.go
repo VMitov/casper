@@ -13,12 +13,14 @@ func TestDiffRun(t *testing.T) {
 	testCases := []struct {
 		storage string
 		tmpl    string
+		key     string
 		sources []map[string]interface{}
 		output  string
 	}{
 		{
 			`key: oldval`,
 			`key: {{.placeholder}}`,
+			"",
 			[]map[string]interface{}{
 				{
 					"type": "config",
@@ -34,6 +36,7 @@ func TestDiffRun(t *testing.T) {
 		{
 			`key: val`,
 			`key: {{.placeholder}}`,
+			"",
 			[]map[string]interface{}{
 				{
 					"type": "config",
@@ -42,7 +45,37 @@ func TestDiffRun(t *testing.T) {
 					},
 				},
 			},
-			"There are no changes\n",
+			"No changes\n",
+		},
+		{
+			`key: oldval`,
+			`key: {{.placeholder}}`,
+			"key",
+			[]map[string]interface{}{
+				{
+					"type": "config",
+					"vals": map[string]string{
+						"placeholder": "val",
+					},
+				},
+			},
+			"" +
+				"-key: oldval\n" +
+				"+key: val\n",
+		},
+		{
+			`key: val`,
+			`key: {{.placeholder}}`,
+			"key",
+			[]map[string]interface{}{
+				{
+					"type": "config",
+					"vals": map[string]string{
+						"placeholder": "val",
+					},
+				},
+			},
+			"No changes for key key\n",
 		},
 	}
 
@@ -63,7 +96,7 @@ func TestDiffRun(t *testing.T) {
 			defer os.Remove(configf.Name())
 
 			out := caspertest.GetStdout(t, func() {
-				err = diffRun(tmpf.Name(), "yaml", "", tc.sources, "file", map[string]interface{}{"path": configf.Name()}, false)
+				err = diffRun(tmpf.Name(), "yaml", tc.key, tc.sources, "file", map[string]interface{}{"path": configf.Name()}, false)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -109,7 +142,7 @@ func TestDiff(t *testing.T) {
 					},
 				},
 			},
-			"There are no changes\n",
+			"No changes\n",
 		},
 	}
 
