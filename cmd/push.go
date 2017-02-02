@@ -72,13 +72,10 @@ func pushRun(tmpl, format, key string, sourcesList []map[string]interface{}, sto
 		return err
 	}
 
+	fmt.Println(strChanges(changes, key, s, pretty))
 	if changes.Len() == 0 {
-		fmt.Println("No changes")
 		return nil
 	}
-
-	fmt.Println("Changes:")
-	fmt.Println(strChanges(changes, s, pretty))
 
 	if !force {
 		// prompt for agreement

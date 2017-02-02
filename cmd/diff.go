@@ -69,13 +69,16 @@ func diffRun(tmpl, format, key string, sourcesList []map[string]interface{}, sto
 		return err
 	}
 
-	fmt.Println(strChanges(changes, s, pretty))
+	fmt.Println(strChanges(changes, key, s, pretty))
 	return nil
 }
 
-func strChanges(cs changes, s storage, pretty bool) string {
+func strChanges(cs changes, key string, s storage, pretty bool) string {
 	if cs.Len() == 0 {
-		return fmt.Sprintf("There are no changes")
+		if key != "" {
+			return fmt.Sprintf("No changes for key %v", key)
+		}
+		return fmt.Sprintf("No changes")
 	}
 	return s.Diff(cs, pretty)
 }

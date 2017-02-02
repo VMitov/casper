@@ -31,7 +31,6 @@ func TestPushRun(t *testing.T) {
 			},
 			true,
 			"" +
-				"Changes:\n" +
 				"-\n" +
 				"+key: val\n" +
 				"Applying changes...\n",
@@ -49,7 +48,6 @@ func TestPushRun(t *testing.T) {
 			},
 			false,
 			"" +
-				"Changes:\n" +
 				"-\n" +
 				"+key: val\n" +
 				"Continue[y/N]: Canceled\n",
@@ -120,7 +118,6 @@ func TestPush(t *testing.T) {
 				},
 			},
 			"" +
-				"Changes:\n" +
 				"-\n" +
 				"+key: val\n" +
 				"Applying changes...\n",
