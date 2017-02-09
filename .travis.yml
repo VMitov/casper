@@ -8,17 +8,15 @@ os:
   - linux
   - osx
 
-before_install:
-  - go get github.com/golang/lint/golint
-  - go get github.com/mattn/goveralls
-
 install:
-  - echo "This is an override of the default install deps step in travis."
+  - if [ "$TRAVIS_GO_VERSION" = "master" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then run_analyzers=true; fi;
+  - if [ "$run_analyzers" = true ]; then go get github.com/golang/lint/golint; fi;
+  - if [ "$run_analyzers" = true ]; then go get github.com/mattn/goveralls; fi;
 
 before_script:
-  - go vet $(go list ./... | grep -v vendor)
-  - test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"
-  - go list ./... | grep -v /vendor/ | xargs -L1 golint
+  - if [ "$run_analyzers" = true ]; then go vet $(go list ./... | grep -v vendor); fi;
+  - if [ "$run_analyzers" = true ]; then test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"; fi;
+  - if [ "$run_analyzers" = true ]; then go list ./... | grep -v /vendor/ | xargs -L1 golint; fi;
 
 script:
-  - goveralls -service=travis-ci
+  - if [ "$run_analyzers" = true ]; then goveralls -service=travis-ci; else go test $(go list ./... | grep -v /vendor/); fi;
