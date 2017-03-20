@@ -18,7 +18,9 @@ var fetchCmd = &cobra.Command{
 		config := viper.GetStringMap("storage.config")
 		format := viper.GetString("format")
 
-		return fetchRun(storage, config, format)
+		cfg, err := fetchRun(storage, config, format)
+		fmt.Println(*cfg)
+		return err
 	},
 }
 
@@ -27,16 +29,16 @@ func init() {
 	RootCmd.AddCommand(fetchCmd)
 }
 
-func fetchRun(storage string, config map[string]interface{}, format string) error {
+func fetchRun(storage string, config map[string]interface{}, format string) (fetched *string, err error) {
 	s, err := getStorage(storage, config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	cfg, err := s.String(format)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	fmt.Println(cfg)
-	return nil
+
+	return &cfg, nil
 }

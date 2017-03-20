@@ -105,3 +105,13 @@ func (c fileChanges) Len() int {
 	}
 	return 1
 }
+
+func (c fileChanges) Refine(func(interface{}) bool) interface{} {
+	return c
+}
+
+// SupportsInteractive checks if interactive key
+// checking is supported. For fileChanges it is not.
+func (c fileChanges) SupportsInteractive() bool {
+	return false
+}

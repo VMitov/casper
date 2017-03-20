@@ -24,12 +24,33 @@ func (c KVChanges) Len() int {
 	return len(c)
 }
 
+// SupportsInteractive checks if interactive key
+// checking is supported. For KVChanges it is.
+func (c KVChanges) SupportsInteractive() bool {
+	return true
+}
+
 func (c KVChanges) Less(i, j int) bool {
 	return c[i].Key() < c[j].Key()
 }
 
 func (c KVChanges) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
+}
+
+// Refine builds a subset of KVChanges based on a function parameter,
+// refine, that shall add the respectice KVChange to the list,
+// should it evaluate to true.
+func (c KVChanges) Refine(refine func(interface{}) bool) interface{} {
+	refinedChanges := KVChanges{}
+
+	for _, a := range c {
+		if refine(a) {
+			refinedChanges = append(refinedChanges, a)
+		}
+	}
+
+	return refinedChanges
 }
 
 // Diff returns a visual representation of the changes

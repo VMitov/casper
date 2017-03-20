@@ -30,10 +30,12 @@ func TestFetchRun(t *testing.T) {
 			}
 
 			out := caspertest.GetStdout(t, func() {
-				err = fetchRun("file", config, "jsonraw")
+				text, err := fetchRun("file", config, "jsonraw")
 				if err != nil {
 					t.Fatal(err)
 				}
+
+				fmt.Println(*text)
 			})
 
 			exp := tc.storage + "\n"

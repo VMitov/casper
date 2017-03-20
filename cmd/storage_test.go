@@ -66,6 +66,14 @@ func (c TestChange) Len() int {
 	return 0
 }
 
+func (c TestChange) Refine(func(interface{}) bool) interface{} {
+	return c
+}
+
+func (c TestChange) SupportsInteractive() bool {
+	return false
+}
+
 func (testStorage) GetChanges(config []byte, format, key string) (changes, error) {
 	return TestChange{}, nil
 }

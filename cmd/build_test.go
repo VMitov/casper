@@ -61,7 +61,7 @@ func TestBuildConfig(t *testing.T) {
 			}
 
 			// Build
-			out, err := buildConfig(tmlpFile.Name(), tc.srcs)
+			out, err := buildConfig(tmlpFile.Name(), true, tc.srcs)
 			if tc.ok != (err == nil) {
 				if err != nil {
 					t.Fatal("Failed with", err)

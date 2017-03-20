@@ -151,7 +151,9 @@ func getChanges(pairs api.KVPairs, config []byte, format, key string) (changes, 
 
 	kvChanges := diff.KVChanges{}
 	for _, c := range consulChanges {
-		if key != "" && key != c.Key {
+		isRegex, keyRegex := getRegex(key)
+
+		if key != "" && (key != c.Key && (isRegex && !keyRegex.MatchString(c.Key))) {
 			continue
 		}
 

@@ -14,14 +14,14 @@ func TestPushRun(t *testing.T) {
 	testCases := []struct {
 		storage string
 		tmpl    string
-		sources []map[string]interface{}
+		sources *[]map[string]interface{}
 		force   bool
 		output  string
 	}{
 		{
 			"",
 			`key: {{.placeholder}}`,
-			[]map[string]interface{}{
+			&[]map[string]interface{}{
 				{
 					"type": "config",
 					"vals": map[string]string{
@@ -30,15 +30,12 @@ func TestPushRun(t *testing.T) {
 				},
 			},
 			true,
-			"" +
-				"-\n" +
-				"+key: val\n" +
-				"Applying changes...\n",
+			"\nThe following changes will be applied:\n-\n+key: val\nApplying changes...\nDone.\n",
 		},
 		{
 			"",
 			`key: {{.placeholder}}`,
-			[]map[string]interface{}{
+			&[]map[string]interface{}{
 				{
 					"type": "config",
 					"vals": map[string]string{
@@ -47,15 +44,12 @@ func TestPushRun(t *testing.T) {
 				},
 			},
 			false,
-			"" +
-				"-\n" +
-				"+key: val\n" +
-				"Continue[y/N]: Canceled\n",
+			"\nThe following changes will be applied:\n-\n+key: val\nContinue [y/N]: Canceled\n",
 		},
 		{
 			"key: val",
 			`key: {{.placeholder}}`,
-			[]map[string]interface{}{
+			&[]map[string]interface{}{
 				{
 					"type": "config",
 					"vals": map[string]string{
@@ -84,8 +78,15 @@ func TestPushRun(t *testing.T) {
 			}
 			defer os.Remove(configf.Name())
 
+			pushConf := &pushConfig{
+				tmpf.Name(), false, "jsonraw", "file", "",
+				false, false, tc.sources, tc.force, false,
+			}
+
 			out := caspertest.GetStdout(t, func() {
-				err = pushRun(tmpf.Name(), "jsonraw", "", tc.sources, "file", map[string]interface{}{"path": configf.Name()}, tc.force, false)
+				err = pushRun(
+					pushConf,
+					map[string]interface{}{"path": configf.Name()})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -117,10 +118,7 @@ func TestPush(t *testing.T) {
 					},
 				},
 			},
-			"" +
-				"-\n" +
-				"+key: val\n" +
-				"Applying changes...\n",
+			"\nThe following changes will be applied:\n-\n+key: val\nApplying changes...\nDone.\n",
 			`key: val`,
 		},
 		{
