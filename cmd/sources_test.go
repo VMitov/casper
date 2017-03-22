@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -269,6 +270,85 @@ func TestToStringMapString(t *testing.T) {
 
 			if tc.ok && !reflect.DeepEqual(res, tc.res) {
 				t.Errorf("Got %v; want %v", res, tc.res)
+			}
+		})
+	}
+}
+
+func TestSourceFormatError(t *testing.T) {
+	testCases := []struct {
+		inputMessage string
+		inputError   error
+		expected     string
+	}{
+		{
+			"test1234", nil,
+			"Invalid source definition: test1234",
+		},
+		{
+			"test1234", errors.New("test444"),
+			"Invalid source definition: test1234 (Err:test444)",
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
+			output := sourceFormatError{
+				tc.inputMessage, tc.inputError,
+			}.Error()
+
+			if output != tc.expected {
+				t.Errorf("Got \"%s\"; want \"%s\"", output, tc.expected)
+			}
+		})
+	}
+}
+
+func TestConvertError(t *testing.T) {
+	testCases := []struct {
+		inputInterface interface{}
+		inputType      string
+		expected       string
+	}{
+		{
+			"test string", "int32",
+			"Unable to convert \"test string\" to int32",
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
+			output := convertError{
+				tc.inputInterface, tc.inputType,
+			}.Error()
+
+			if output != tc.expected {
+				t.Errorf("Got \"%s\"; want \"%s\"", output, tc.expected)
+			}
+		})
+	}
+}
+
+func TestToString(t *testing.T) {
+	testCases := []struct {
+		input       interface{}
+		expectedStr string
+		expectedOK  bool
+	}{
+		{"24abc", "24abc", true},
+		{24, "24", true},
+		{true, "true", true},
+		{false, "false", true},
+		{-150.29, "", false},
+	}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
+			str, ok := toString(tc.input)
+
+			if str != tc.expectedStr || ok != tc.expectedOK {
+				t.Errorf("Got \"%s\", %t; want \"%s\", %t",
+					str, ok, tc.expectedStr, tc.expectedOK)
 			}
 		})
 	}

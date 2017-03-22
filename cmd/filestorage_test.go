@@ -175,3 +175,15 @@ func TestFileStorageFormats(t *testing.T) {
 		})
 	}
 }
+
+func TestRefine(t *testing.T) {
+	original := fileChanges{}
+	var refined fileChanges
+	refined = original.Refine(func(interface{}) bool {
+		return true
+	}).(fileChanges)
+
+	if original.Len() != refined.Len() {
+		t.Errorf("Refine does not work as expected")
+	}
+}

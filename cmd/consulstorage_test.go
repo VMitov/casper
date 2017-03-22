@@ -358,3 +358,11 @@ func TestGetChanges(t *testing.T) {
 		})
 	}
 }
+
+func TestChangeError(t *testing.T) {
+	expected := "Consul: Invalid change type: int"
+	err := changeError{22}
+	if err.Error() != expected {
+		t.Errorf("Got `%v`; want `%v`", err.Error(), expected)
+	}
+}

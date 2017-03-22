@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/miracl/casper/lib/caspertest"
@@ -12,15 +14,19 @@ import (
 
 func TestPushRun(t *testing.T) {
 	testCases := []struct {
-		storage string
-		tmpl    string
-		sources *[]map[string]interface{}
-		force   bool
-		output  string
+		storage     string
+		tmpl        string
+		interactive bool
+		backup      bool
+		sources     *[]map[string]interface{}
+		force       bool
+		output      string
 	}{
 		{
 			"",
 			`key: {{.placeholder}}`,
+			false,
+			false,
 			&[]map[string]interface{}{
 				{
 					"type": "config",
@@ -35,6 +41,8 @@ func TestPushRun(t *testing.T) {
 		{
 			"",
 			`key: {{.placeholder}}`,
+			false,
+			false,
 			&[]map[string]interface{}{
 				{
 					"type": "config",
@@ -49,6 +57,8 @@ func TestPushRun(t *testing.T) {
 		{
 			"key: val",
 			`key: {{.placeholder}}`,
+			false,
+			false,
 			&[]map[string]interface{}{
 				{
 					"type": "config",
@@ -59,6 +69,22 @@ func TestPushRun(t *testing.T) {
 			},
 			true,
 			"No changes\n",
+		},
+		{
+			"",
+			`key: {{.placeholder}}`,
+			true,
+			true,
+			&[]map[string]interface{}{
+				{
+					"type": "config",
+					"vals": map[string]string{
+						"placeholder": "val",
+					},
+				},
+			},
+			false,
+			"\nThe following changes will be applied:\n-\n+key: val\nContinue [y/N]: Canceled\n",
 		},
 	}
 
@@ -80,7 +106,7 @@ func TestPushRun(t *testing.T) {
 
 			pushConf := &pushConfig{
 				tmpf.Name(), false, "jsonraw", "file", "",
-				false, false, tc.sources, tc.force, false,
+				tc.interactive, tc.backup, tc.sources, tc.force, false,
 			}
 
 			out := caspertest.GetStdout(t, func() {
@@ -191,6 +217,102 @@ func TestPush(t *testing.T) {
 			}
 			if string(result) != tc.result {
 				t.Errorf("Got %#v; Want %#v", string(result), tc.result)
+			}
+		})
+	}
+}
+
+func TestGenerateBackupFilename(t *testing.T) {
+	t.Run("Case0", func(t *testing.T) {
+		expression := regexp.MustCompile("\\d{10}_backup.txt")
+		generated := generateBackupFilename()
+
+		if !expression.MatchString(generated) {
+			t.Errorf("Generated filename %s did not match the expected format", generated)
+		}
+	})
+}
+
+func TestSaveBackup(t *testing.T) {
+	testCases := []string{
+		"test1234",
+	}
+
+	for i := range testCases {
+		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
+			filename, err := saveBackup(&testCases[i])
+			defer os.Remove(filename)
+
+			result, err := ioutil.ReadFile(filename)
+			if err != nil {
+				t.Errorf("Could not read file %s", filename)
+			}
+
+			if bytes.Compare(result, []byte(testCases[i])) != 0 {
+				t.Errorf("Wrong content: Expected \"%s\", got \"%s\"", testCases[i], string(result))
+			}
+		})
+	}
+}
+
+func TestBackup(t *testing.T) {
+	testCases := []struct {
+		storage       string
+		createFile    bool
+		errorExpected bool
+	}{
+		{"test: 1234abc", true, false},
+		{"", false, true},
+	}
+
+	backupFormat := "Backup has been saved as (?P<Filename>\\d{10}_backup.txt).*"
+	expression := regexp.MustCompile(backupFormat)
+
+	for i, tc := range testCases {
+		storageFilename := ""
+
+		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
+			// Prepare config
+
+			if tc.createFile {
+				testFilename := fmt.Sprintf("Case%vConfig.yaml", i)
+				storageFile, err := caspertest.PrepareTmpFile(testFilename, []byte(tc.storage))
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				storageFilename = storageFile.Name()
+				defer os.Remove(storageFilename)
+			}
+
+			sourcesList, _ := getSliceStringMapIface("")
+			pc := &pushConfig{
+				"", false, tc.storage, "file", "",
+				false, true, &sourcesList, false, true,
+			}
+			conf := map[string]interface{}{"path": storageFilename}
+
+			out := caspertest.GetStdout(t, func() {
+				err := backup(pc, conf)
+
+				if !tc.errorExpected && err != nil {
+					t.Errorf("Backup failed: %v", err)
+				} else if tc.errorExpected && err == nil {
+					t.Errorf("An error was expected but none was detected")
+				}
+			})
+
+			if tc.errorExpected {
+				return
+			}
+
+			if !expression.MatchString(out) {
+				t.Errorf("Output \"%s\" did not match "+
+					"the expected format: \"%s\"",
+					out, backupFormat)
+			} else {
+				backupFile := expression.FindStringSubmatch(out)[1]
+				defer os.Remove(backupFile)
 			}
 		})
 	}

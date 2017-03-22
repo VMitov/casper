@@ -13,13 +13,17 @@ import (
 
 func TestBuildConfig(t *testing.T) {
 	testCases := []struct {
-		tmpl string
-		srcs []map[string]interface{}
-		out  string
-		ok   bool
+		createFile bool
+		tmpl       string
+		validate   bool
+		srcs       []map[string]interface{}
+		out        string
+		ok         bool
 	}{
 		{
+			true,
 			"key1: {{.key1}}, key2: {{.key2}}",
+			true,
 			[]map[string]interface{}{
 				{
 					"type": "config",
@@ -33,7 +37,9 @@ func TestBuildConfig(t *testing.T) {
 			true,
 		},
 		{
+			true,
 			"key1: {{.key1}}, key2: {{.key2}}",
+			true,
 			[]map[string]interface{}{
 				{
 					"type": "bad",
@@ -42,26 +48,74 @@ func TestBuildConfig(t *testing.T) {
 			"",
 			false,
 		},
+		{
+			false, "", true,
+			[]map[string]interface{}{
+				{
+					"type": "bad",
+				},
+			},
+			"",
+			false,
+		},
+		{
+			true,
+			"key1: {{test}}, key2: {{test2}}",
+			true,
+			[]map[string]interface{}{
+				{
+					"type": "config",
+					"vals": map[interface{}]interface{}{
+						"key1": "var1",
+						"key2": "var2",
+					},
+				},
+			},
+			"",
+			false,
+		},
+		{
+			true,
+			"key1: {{test}}, key2: {{test2}}",
+			false,
+			[]map[string]interface{}{
+				{
+					"type": "config",
+					"vals": map[interface{}]interface{}{
+						"key1": "var1",
+						"key2": "var2",
+					},
+				},
+			},
+			"key1: {{test}}, key2: {{test2}}",
+			true,
+		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			// Prepare config file
-			tmlpFile, err := ioutil.TempFile("", "TestBuild")
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer os.Remove(tmlpFile.Name()) // clean up
+			filename := ""
 
-			if _, err := tmlpFile.Write([]byte(tc.tmpl)); err != nil {
-				t.Fatal(err)
-			}
-			if err := tmlpFile.Close(); err != nil {
-				t.Fatal(err)
+			if tc.createFile {
+				// Prepare config file
+				tmlpFile, err := ioutil.TempFile("", "TestBuild")
+				if err != nil {
+					log.Fatal(err)
+				}
+				filename = tmlpFile.Name()
+
+				defer os.Remove(filename) // clean up
+
+				if _, err := tmlpFile.Write([]byte(tc.tmpl)); err != nil {
+					t.Fatal(err)
+				}
+				if err := tmlpFile.Close(); err != nil {
+					t.Fatal(err)
+				}
 			}
 
 			// Build
-			out, err := buildConfig(tmlpFile.Name(), true, tc.srcs)
+			out, err := buildConfig(filename, tc.validate, tc.srcs)
 			if tc.ok != (err == nil) {
 				if err != nil {
 					t.Fatal("Failed with", err)
@@ -71,7 +125,7 @@ func TestBuildConfig(t *testing.T) {
 			}
 
 			if tc.ok && string(out) != tc.out {
-				t.Errorf("Got '%v'; want '%v'", out, tc.out)
+				t.Errorf("Got '%s'; want '%s'", out, tc.out)
 			}
 		})
 	}

@@ -10,9 +10,10 @@ import (
 
 func TestBuild(t *testing.T) {
 	testCases := []struct {
-		tmpl   string
-		source source.ValuesSourcer
-		res    string
+		tmpl     string
+		source   source.ValuesSourcer
+		validate bool
+		res      string
 	}{
 		{
 			`{"cfg1": "{{.key1}}", "cfg2": "{{.key2}}"}`,
@@ -20,6 +21,7 @@ func TestBuild(t *testing.T) {
 				"key1": "var1",
 				"key2": "var2",
 			}),
+			true,
 			`{"cfg1": "var1", "cfg2": "var2"}`,
 		},
 		{
@@ -27,6 +29,7 @@ func TestBuild(t *testing.T) {
 			source.NewSource(map[string]interface{}{
 				"key1": "var1",
 			}),
+			true,
 			`{"cfg1": "var1", "cfg2": "", "cfg3": "<no value>"}`,
 		},
 		{
@@ -34,7 +37,17 @@ func TestBuild(t *testing.T) {
 			source.NewSource(map[string]interface{}{
 				"key1": "var1",
 			}),
+			true,
 			``,
+		},
+		{
+			`{"cfg1": "{{something}}", "cfg2": "{{somethingElse}}"}`,
+			source.NewSource(map[string]interface{}{
+				"key1": "var1",
+				"key2": "var2",
+			}),
+			false,
+			`{"cfg1": "{{something}}", "cfg2": "{{somethingElse}}"}`,
 		},
 	}
 
@@ -42,10 +55,20 @@ func TestBuild(t *testing.T) {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
 
 			// Build
-			config, err := BuildConfig{
+			conf := BuildConfig{
 				Tmlp:   bytes.NewBufferString(tc.tmpl),
 				Source: tc.source,
-			}.Build()
+			}
+
+			var config []byte
+			var err error
+
+			if tc.validate {
+				config, err = conf.Build()
+			} else {
+				config, err = conf.BuildNoValidation()
+			}
+
 			if err != nil {
 				t.Fatal(err)
 			}

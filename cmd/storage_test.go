@@ -42,6 +42,15 @@ func TestGetStorage(t *testing.T) {
 	}
 }
 
+func TestError(t *testing.T) {
+	t.Run("Case0", func(t *testing.T) {
+		err := storageError("test")
+		if err.Error() != "Invalid storage type" {
+			t.Errorf("Incorrect error message")
+		}
+	})
+}
+
 type testStorage struct{}
 
 func (testStorage) String(string) (string, error) {
@@ -71,7 +80,7 @@ func (c TestChange) Refine(func(interface{}) bool) interface{} {
 }
 
 func (c TestChange) SupportsInteractive() bool {
-	return false
+	return true
 }
 
 func (testStorage) GetChanges(config []byte, format, key string) (changes, error) {
