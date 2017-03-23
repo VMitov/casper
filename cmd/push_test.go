@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"testing"
 
+	"golang.org/x/crypto/ssh/terminal"
+
 	"github.com/miracl/casper/lib/caspertest"
 )
 
@@ -313,6 +315,27 @@ func TestBackup(t *testing.T) {
 			} else {
 				backupFile := expression.FindStringSubmatch(out)[1]
 				defer os.Remove(backupFile)
+			}
+		})
+	}
+}
+
+func TestUsePlain(t *testing.T) {
+	testCases := []struct {
+		plain bool
+	}{
+		{true},
+		{false},
+	}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
+			result := usePlain(tc.plain)
+			isTerminal := terminal.IsTerminal(int(os.Stdout.Fd()))
+			expected := tc.plain || !isTerminal
+
+			if result != expected {
+				t.Errorf("Got %t for input %t", result, expected)
 			}
 		})
 	}

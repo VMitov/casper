@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/ssh/terminal"
+
 	"github.com/miracl/casper/lib/diff"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -60,6 +62,8 @@ var pushCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		plain = usePlain(plain)
 
 		pushConf := &pushConfig{
 			template, noValidation, format, storage, key,
@@ -211,4 +215,12 @@ func generateBackupFilename() string {
 func saveBackup(content *string) (filename string, err error) {
 	filename = generateBackupFilename()
 	return filename, ioutil.WriteFile(filename, []byte(*content), 0644)
+}
+
+// usePlain returns true if plain is true or if the system
+// does not support colors.
+func usePlain(plain bool) bool {
+	// The user may have chosen no use colors when it's not
+	// supported - force plain
+	return plain || !terminal.IsTerminal(int(os.Stdout.Fd()))
 }

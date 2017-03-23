@@ -35,6 +35,8 @@ var diffCmd = &cobra.Command{
 			return err
 		}
 
+		plain = usePlain(plain)
+
 		return diffRun(template, format, key, sourcesList, storage, config, !plain)
 	},
 }
