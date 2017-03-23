@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 
 	"github.com/miracl/casper/lib/source"
@@ -148,4 +149,10 @@ func toString(s interface{}) (string, bool) {
 	default:
 		return "", false
 	}
+}
+
+func getRegex(key string) (isRegex bool, expression *regexp.Regexp) {
+	expression, err := regexp.Compile(key)
+	isRegex = err == nil
+	return isRegex, expression
 }

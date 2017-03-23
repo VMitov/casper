@@ -35,6 +35,8 @@ var diffCmd = &cobra.Command{
 			return err
 		}
 
+		plain = usePlain(plain)
+
 		return diffRun(template, format, key, sourcesList, storage, config, !plain)
 	},
 }
@@ -49,7 +51,7 @@ func init() {
 }
 
 func diffRun(tmpl, format, key string, sourcesList []map[string]interface{}, storage string, config map[string]interface{}, pretty bool) error {
-	out, err := buildConfig(tmpl, sourcesList)
+	out, err := buildConfig(tmpl, true, sourcesList)
 	if err != nil {
 		return err
 	}
@@ -80,5 +82,6 @@ func strChanges(cs changes, key string, s storage, pretty bool) string {
 		}
 		return fmt.Sprintf("No changes")
 	}
+
 	return s.Diff(cs, pretty)
 }

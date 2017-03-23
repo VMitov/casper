@@ -13,6 +13,8 @@ type storage interface {
 
 type changes interface {
 	Len() int
+	Refine(func(interface{}) bool) interface{}
+	SupportsInteractive() bool
 }
 
 var (
@@ -25,7 +27,7 @@ var (
 type storageError string
 
 func (e storageError) Error() string {
-	return fmt.Sprintf("Invalid storage type %v", e)
+	return fmt.Sprintf("Invalid storage type")
 }
 
 func getStorage(t string, cfg map[string]interface{}) (storage, error) {

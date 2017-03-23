@@ -49,3 +49,8 @@ func (c BuildConfig) Build() ([]byte, error) {
 
 	return cfgStr, nil
 }
+
+// BuildNoValidation creates the config based on a non-validated input file.
+func (c BuildConfig) BuildNoValidation() ([]byte, error) {
+	return ioutil.ReadAll(c.Tmlp)
+}

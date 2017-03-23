@@ -36,7 +36,7 @@ func init() {
 }
 
 func buildRun(tmplF string, srcs []map[string]interface{}) error {
-	out, err := buildConfig(tmplF, srcs)
+	out, err := buildConfig(tmplF, true, srcs)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func buildRun(tmplF string, srcs []map[string]interface{}) error {
 	return nil
 }
 
-func buildConfig(tmplF string, srcs []map[string]interface{}) ([]byte, error) {
+func buildConfig(tmplF string, validate bool, srcs []map[string]interface{}) ([]byte, error) {
 	tmpl, err := os.Open(tmplF)
 	if err != nil {
 		return nil, err
@@ -56,10 +56,18 @@ func buildConfig(tmplF string, srcs []map[string]interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	cfg, err := casper.BuildConfig{
+	var cfg []byte
+	config := casper.BuildConfig{
 		Tmlp:   tmpl,
 		Source: source,
-	}.Build()
+	}
+
+	if validate {
+		cfg, err = config.Build()
+	} else {
+		cfg, err = config.BuildNoValidation()
+	}
+
 	if err != nil {
 		return nil, err
 	}

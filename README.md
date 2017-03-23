@@ -7,7 +7,13 @@ _Configuration Automation for Safe and Painless Environment Releases_
 
 ## Description
 
-Casper is a simple tool for managing configurations as code where the structure of the configurations is separated from the values themselves. That way you can use the same structure for different environments. The structure of the configurations is described in a template file. Overall the tool combines the template file with all the values, serializes it to a format applicable for the configuration storage and pushes the changes to the storage.
+CASPER is a simple tool for managing software configuration.
+
+Configuration structure is separated from the values it holds. This way you can use the same structure for different environments or encode the same values in different formats.
+
+The two main units CASPER uses are template files, describing structure, and configuration files, containing the values to use.
+
+In a nutshell, the tool combines the template files with the values into a serialized format compatible with the target storage system. It then pushes the changes to the storage.
 
 ## Installation
 
@@ -26,16 +32,39 @@ casper build
 
 ## config.yaml
 
-* **template** - The template file is a golang template. The end product of the template file and the values should be of a format applicable for the configuration storage (e.g: json, yaml for key/value stores)
-* **format** - Format of the template. It depends on the storage configures.
-* **sources** - Sources are the thing containing the keys for the template. Sources is a list of sources defined with `type` and keys that are specific to each particular source. Currently there are 2 available:
-	* config - key/value pairs directly in the configuration file
-		* vals - list of key/value pairs
-	* file - key/value pairs in file
-		* format - format of the file (json, yaml)
-		* file - path to file containing key/value pairs
-* **storage** - Storage is the system that Casper menages. Storage will have two keys - `type` and `config` where `config` contains all the configurations for the storage specified by `type`. Currently there are 2 available:
-	* consul - Consul (Formats: json, yaml)
-		* addr - address of the consul instance e.g: `localhost:8500`
-	* file - File (Formats: string)
-		* path - path to the file
+The `config.yaml` file sets up the way Casper should behave. Study the example file listing below and its breakdown afterwards to understand how to configure Casper.
+
+```
+template: <path to a template file>
+format: <format of the template file>
+sources:
+  - type: <config|file>
+    vals:
+      <key1>: <value1>
+      <key2>: <value2>
+      <keyn>: <valuen>
+storage:
+  type: <consul|file>
+  config:
+    <config key>: <config value>
+```
+
+**template** - the template file is a [golang template](https://golang.org/pkg/text/template/). The end product of the template file and the values will be of a format applicable for the configuration storage (e.g: json, yaml for key-value stores)
+
+**format** - the format of the template, for example "yaml". It depends on storage configuration.
+
+**sources** - the key-value pairs applied to the template. _Sources_ is a list of sources defined with `type`, listing keys that are specific to the particular source. Currently there are two types of sources available:
+
+* `config` - key-value pairs are placed directly in the configuration file
+	* `vals` - a list of key-value pairs
+* `file` - the key-value pairs are stored in a separate file, allowing you to separate Casper's configuration from the actual data
+	* `format` - the format of the file containing the values (valid formats are "json" and "yaml")
+		* `file` - the path to file containing key-value pairs
+
+**storage** - Storage is the system that Casper manages. Storage will have two keys - `type` and `config`, where `type` specifies the type of the storage being used, while `config` contains configuration for the storage itself. There are two types of storage supported currently:
+* consul - [Consul](https://www.consul.io/) (accepted formats: json, yaml)
+	* addr - address of a Consul instance e.g: `localhost:8500`
+* file - File (accepted format: string)
+	* path - path to the file
+
+
