@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"reflect"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/consul/api"
@@ -86,7 +87,7 @@ func TestConsulStorageString(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &consulStorage{&ConsulKVMock{list: tc.list, listErr: tc.listErr}, []string{"jsonraw"}}
+			s := &consulStorage{&ConsulKVMock{list: tc.list, listErr: tc.listErr}, []string{"jsonraw"}, defaultIgnoreVal}
 			str, err := s.String("jsonraw")
 			if err != tc.err {
 				t.Fatalf("Got %v; want %v", err, tc.err)
@@ -125,11 +126,28 @@ func TestConsulStoragePush(t *testing.T) {
 			},
 			[]string{"key2"},
 		},
+		{
+			api.KVPairs{
+				&api.KVPair{Key: "key1", Value: []byte("val1")},
+				&api.KVPair{Key: "key2", Value: []byte("val2")},
+				&api.KVPair{Key: "key3", Value: []byte("val")},
+			},
+			`{"key1":"val1","key2":"_ignore","key3":"val3","key4":"val4"}`,
+			"" +
+				"-key3=val\n" +
+				"+key3=val3\n" +
+				"+key4=val4\n",
+			api.KVPairs{
+				&api.KVPair{Key: "key3", Value: []byte("val3")},
+				&api.KVPair{Key: "key4", Value: []byte("val4")},
+			},
+			[]string{},
+		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &consulStorage{&ConsulKVMock{list: tc.list}, []string{"jsonraw	"}}
+			s := &consulStorage{&ConsulKVMock{list: tc.list}, []string{"jsonraw	"}, defaultIgnoreVal}
 
 			cs, err := s.GetChanges([]byte(tc.config), "jsonraw", "")
 			if err != nil {
@@ -147,7 +165,8 @@ func TestConsulStoragePush(t *testing.T) {
 			}
 
 			kv := s.kv.(*ConsulKVMock)
-			if !reflect.DeepEqual(kv.dels, tc.dels) {
+			sort.Strings(kv.dels)
+			if strings.Join(kv.dels, ",") != strings.Join(tc.dels, ",") {
 				t.Errorf("Got `%v`; want `%v`", kv.dels, tc.dels)
 			}
 
@@ -200,7 +219,7 @@ func TestConsulStorageFormats(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &consulStorage{&ConsulKVMock{}, tc.formats}
+			s := &consulStorage{&ConsulKVMock{}, tc.formats, defaultIgnoreVal}
 
 			if s.FormatIsValid(tc.fmt) != tc.valid {
 				t.Errorf("%v should have been valid:%v", tc.fmt, tc.valid)
@@ -342,7 +361,7 @@ func TestGetChanges(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			ch, err := getChanges(tc.pairs, []byte(tc.config), tc.format, tc.key)
+			ch, err := getChanges(tc.pairs, []byte(tc.config), tc.format, tc.key, defaultIgnoreVal)
 
 			if tc.ok != (err == nil) {
 				if err != nil {

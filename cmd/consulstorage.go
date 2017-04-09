@@ -13,6 +13,10 @@ import (
 	"github.com/miracl/casper/lib/diff"
 )
 
+const (
+	defaultIgnoreVal = "_ignore"
+)
+
 // ConsulKV is interface that consul KV type implements.
 // Defined and used mainly for testing.
 type ConsulKV interface {
@@ -26,7 +30,8 @@ var consulFormats = []string{"json", "yaml", "jsonraw"}
 type consulStorage struct {
 	kv ConsulKV
 
-	formats []string
+	formats   []string
+	ignoreVal string
 }
 
 var errConsulAddr = errors.New("Consul addr is invalid type")
@@ -45,10 +50,15 @@ func newConsulStorageConfig(config map[string]interface{}) (storage, error) {
 		return nil, errConsulAddr
 	}
 
-	return newConsulStorage(strAddr)
+	ignoreVal, ok := config["ignore"].(string)
+	if !ok || ignoreVal == "" {
+		ignoreVal = defaultIgnoreVal
+	}
+
+	return newConsulStorage(strAddr, ignoreVal)
 }
 
-func newConsulStorage(addr string) (storage, error) {
+func newConsulStorage(addr, ignoreVal string) (storage, error) {
 	cfg := &api.Config{}
 	if addr != "" {
 		addr, err := url.Parse(addr)
@@ -64,7 +74,7 @@ func newConsulStorage(addr string) (storage, error) {
 		return nil, err
 	}
 
-	return &consulStorage{client.KV(), consulFormats}, nil
+	return &consulStorage{client.KV(), consulFormats, ignoreVal}, nil
 }
 
 func (s consulStorage) String(format string) (string, error) {
@@ -94,7 +104,7 @@ func (s consulStorage) GetChanges(config []byte, format, key string) (changes, e
 		return nil, err
 	}
 
-	return getChanges(pairs, config, format, key)
+	return getChanges(pairs, config, format, key, s.ignoreVal)
 }
 
 func (consulStorage) Diff(cs changes, pretty bool) string {
@@ -143,7 +153,7 @@ func kvPairsToString(pairs api.KVPairs, format string) string {
 	return string(res)
 }
 
-func getChanges(pairs api.KVPairs, config []byte, format, key string) (changes, error) {
+func getChanges(pairs api.KVPairs, config []byte, format, key, ignoreVal string) (changes, error) {
 	consulChanges, err := consul.GetChanges(pairs, config, format)
 	if err != nil {
 		return nil, err
@@ -151,6 +161,11 @@ func getChanges(pairs api.KVPairs, config []byte, format, key string) (changes, 
 
 	kvChanges := diff.KVChanges{}
 	for _, c := range consulChanges {
+		// Skip ignored pairs
+		if ignoreVal != "" && c.NewVal == ignoreVal {
+			continue
+		}
+
 		if key != "" && key != c.Key {
 			continue
 		}

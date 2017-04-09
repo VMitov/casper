@@ -37,5 +37,6 @@ casper build
 * **storage** - Storage is the system that Casper menages. Storage will have two keys - `type` and `config` where `config` contains all the configurations for the storage specified by `type`. Currently there are 2 available:
 	* consul - Consul (Formats: json, yaml)
 		* addr - address of the consul instance e.g: `localhost:8500`
+		* ignore - keys given the value of this setting in configuration will be ignored by Casper. The default such value is "_ignore"
 	* file - File (Formats: string)
 		* path - path to the file
