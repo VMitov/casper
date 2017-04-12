@@ -21,3 +21,28 @@ before_script:
 
 script:
   - if [ "$FULL" = "true" ]; then goveralls -service=travis-ci; else go test $(go list ./... | grep -v /vendor/); fi;
+
+before_deploy:
+  - GOOS=linux go build -o releases/casper
+  - tar -czf releases/casper.linux-amd64.tar.gz -C releases casper
+  - GOOS=darwin go build -o releases/casper
+  - tar -czf releases/casper.darwin-amd64.tar.gz -C releases casper
+  - GOOS=windows go build -o releases/casper.exe
+  - tar -czf releases/casper.windows-amd64.tar.gz -C releases casper.exe
+  - cd releases
+  - sha256sum *.tar.gz > sha256sum.txt
+  - cd ..
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN_KEY
+  file:
+    - "releases/casper.linux-amd64.tar.gz"
+    - "releases/casper.darwin-amd64.tar.gz"
+    - "releases/casper.windows-amd64.tar.gz"
+    - "releases/sha256sum.txt"
+  skip_cleanup: true
+  on:
+    condition: "$FULL = true"
+    branch: master
+    tags: true
