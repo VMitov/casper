@@ -1,22 +1,48 @@
 language: go
 
-go:
-  - 1.x
-  - master
-
-os:
-  - linux
-  - osx
+matrix:
+  include:
+  - go: 1.x
+    os: linux
+    env: FULL=true
+  - go: 1.x
+    os: osx
+  - go: tip
+    os: linux
 
 install:
-  - if [ "$TRAVIS_GO_VERSION" = "master" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then run_analyzers=true; fi;
-  - if [ "$run_analyzers" = true ]; then go get github.com/golang/lint/golint; fi;
-  - if [ "$run_analyzers" = true ]; then go get github.com/mattn/goveralls; fi;
+  - if [ "$FULL" = "true" ]; then go get github.com/golang/lint/golint; fi;
+  - if [ "$FULL" = "true" ]; then go get github.com/mattn/goveralls; fi;
 
 before_script:
-  - if [ "$run_analyzers" = true ]; then go vet $(go list ./... | grep -v vendor); fi;
-  - if [ "$run_analyzers" = true ]; then test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"; fi;
-  - if [ "$run_analyzers" = true ]; then go list ./... | grep -v /vendor/ | xargs -L1 golint; fi;
+  - if [ "$FULL" = "true" ]; then go vet $(go list ./... | grep -v vendor); fi;
+  - if [ "$FULL" = "true" ]; then test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"; fi;
+  - if [ "$FULL" = "true" ]; then go list ./... | grep -v /vendor/ | xargs -L1 golint; fi;
 
 script:
-  - if [ "$run_analyzers" = true ]; then goveralls -service=travis-ci; else go test $(go list ./... | grep -v /vendor/); fi;
+  - if [ "$FULL" = "true" ]; then goveralls -service=travis-ci; else go test $(go list ./... | grep -v /vendor/); fi;
+
+before_deploy:
+  - GOOS=linux go build -o releases/casper
+  - tar -czf releases/casper.linux-amd64.tar.gz -C releases casper
+  - GOOS=darwin go build -o releases/casper
+  - tar -czf releases/casper.darwin-amd64.tar.gz -C releases casper
+  - GOOS=windows go build -o releases/casper.exe
+  - tar -czf releases/casper.windows-amd64.tar.gz -C releases casper.exe
+  - cd releases
+  - sha256sum *.tar.gz > sha256sum.txt
+  - cd ..
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN_KEY
+  file:
+    - "releases/casper.linux-amd64.tar.gz"
+    - "releases/casper.darwin-amd64.tar.gz"
+    - "releases/casper.windows-amd64.tar.gz"
+    - "releases/sha256sum.txt"
+  skip_cleanup: true
+  on:
+    condition: "$FULL = true"
+    branch: master
+    tags: true
