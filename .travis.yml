@@ -18,6 +18,8 @@ jobs:
     - &test
       stage: test alternative environments
       script: go test $(go list ./... | grep -v /vendor/)
+      go: 1.x
+      os: linux
     - <<: *test
       go: 1.x
       os: osx
