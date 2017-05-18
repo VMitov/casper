@@ -2,47 +2,58 @@ language: go
 
 matrix:
   include:
-  - go: 1.x
-    os: linux
-    env: FULL=true
-  - go: 1.x
-    os: osx
-  - go: tip
-    os: linux
+    - go: 1.x
+      os: linux
+    - go: 1.x
+      os: osx
+    - go: tip
+      os: linux
 
-install:
-  - if [ "$FULL" = "true" ]; then go get github.com/golang/lint/golint; fi;
-  - if [ "$FULL" = "true" ]; then go get github.com/mattn/goveralls; fi;
+jobs:
+  include:
 
-before_script:
-  - if [ "$FULL" = "true" ]; then go vet $(go list ./... | grep -v vendor); fi;
-  - if [ "$FULL" = "true" ]; then test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"; fi;
-  - if [ "$FULL" = "true" ]; then test -z "$(go list ./... 2>&1 | grep -v /vendor/ | xargs -L1 golint | tee /dev/stderr)"; fi;
+    - stage: test
+      go: 1.x
+      os: linux
+      install:
+        - go get github.com/golang/lint/golint
+        - go get github.com/mattn/goveralls
+      before_script:
+        - go vet $(go list ./... | grep -v vendor)
+        - test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"
+        - test -z "$(go list ./... 2>&1 | grep -v /vendor/ | xargs -L1 golint | tee /dev/stderr)"
+      script: goveralls -service=travis-ci
 
-script:
-  - if [ "$FULL" = "true" ]; then goveralls -service=travis-ci; else go test $(go list ./... | grep -v /vendor/); fi;
+    - &test
+      stage: test alternative environments
+      script: go test $(go list ./... | grep -v /vendor/)
+    - <<: test
+      go: 1.x
+      os: osx
+    - <<: test
+      go: tip
+      os: linux
 
-before_deploy:
-  - GOOS=linux go build -o releases/casper
-  - tar -czf releases/casper.linux-amd64.tar.gz -C releases casper
-  - GOOS=darwin go build -o releases/casper
-  - tar -czf releases/casper.darwin-amd64.tar.gz -C releases casper
-  - GOOS=windows go build -o releases/casper.exe
-  - tar -czf releases/casper.windows-amd64.tar.gz -C releases casper.exe
-  - cd releases
-  - sha256sum *.tar.gz > sha256sum.txt
-  - cd ..
-
-deploy:
-  provider: releases
-  api_key: $GITHUB_TOKEN_KEY
-  file:
-    - "releases/casper.linux-amd64.tar.gz"
-    - "releases/casper.darwin-amd64.tar.gz"
-    - "releases/casper.windows-amd64.tar.gz"
-    - "releases/sha256sum.txt"
-  skip_cleanup: true
-  on:
-    condition: "$FULL = true"
-    branch: master
-    tags: true
+    - stage: GitHub releases
+      script: skip
+      before_deploy:
+        - GOOS=linux go build -o releases/casper
+        - tar -czf releases/casper.linux-amd64.tar.gz -C releases casper
+        - GOOS=darwin go build -o releases/casper
+        - tar -czf releases/casper.darwin-amd64.tar.gz -C releases casper
+        - GOOS=windows go build -o releases/casper.exe
+        - tar -czf releases/casper.windows-amd64.tar.gz -C releases casper.exe
+        - cd releases
+        - sha256sum *.tar.gz > sha256sum.txt
+        - cd ..
+      deploy:
+        provider: releases
+        api_key: $GITHUB_TOKEN_KEY
+        file:
+          - "releases/casper.linux-amd64.tar.gz"
+          - "releases/casper.darwin-amd64.tar.gz"
+          - "releases/casper.windows-amd64.tar.gz"
+          - "releases/sha256sum.txt"
+        skip_cleanup: true
+        on:
+          tags: true
