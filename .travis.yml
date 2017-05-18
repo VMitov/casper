@@ -1,14 +1,5 @@
 language: go
 
-matrix:
-  include:
-    - go: 1.x
-      os: linux
-    - go: 1.x
-      os: osx
-    - go: tip
-      os: linux
-
 jobs:
   include:
 
