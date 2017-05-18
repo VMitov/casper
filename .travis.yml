@@ -13,13 +13,12 @@ jobs:
         - test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"
         - test -z "$(go list ./... 2>&1 | grep -v /vendor/ | xargs -L1 golint | tee /dev/stderr)"
       script: goveralls -service=travis-ci
-    - &test
-      stage: test alternative environments
+    - stage: test alternative environments
       script: go test $(go list ./... | grep -v /vendor/)
-    - <<: test
       go: 1.x
       os: osx
-    - <<: test
+    - stage: test alternative environments
+      script: go test $(go list ./... | grep -v /vendor/)
       go: tip
       os: linux
     - stage: GitHub releases
