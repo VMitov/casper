@@ -26,6 +26,11 @@ var buildCmd = &cobra.Command{
 			return errFormat
 		}
 
+		// fix the template path if it is from the config file
+		if viper.InConfig("template") && !cmd.Flag("template").Changed {
+			template = configPath(cfgFile, template)
+		}
+
 		return buildRun(template, sourcesList)
 	},
 }

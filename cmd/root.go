@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -63,4 +64,19 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Error parsing config file:", err)
 	}
+}
+
+// configPath returns absolute path for paths that are relative to the config
+func configPath(cfgPath, p string) string {
+	if cfgPath == "" {
+		// congig is in current dir
+		return p
+	}
+
+	absCfgPath, err := filepath.Abs(cfgPath)
+	if err != nil {
+		return p
+	}
+
+	return filepath.Clean(filepath.Join(filepath.Dir(absCfgPath), p))
 }

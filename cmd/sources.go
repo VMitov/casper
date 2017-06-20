@@ -91,7 +91,7 @@ func getFileSource(cfg map[string]interface{}) (*source.Source, error) {
 		format = formatI.(string)
 	}
 
-	r, err := os.Open(path)
+	r, err := os.Open(configPath(cfgFile, path))
 	if err != nil {
 		return nil, err
 	}
