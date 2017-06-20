@@ -43,6 +43,11 @@ var pushCmd = &cobra.Command{
 			return err
 		}
 
+		// fix the template path if it is from the config file
+		if viper.InConfig("template") && !cmd.Flag("template").Changed {
+			template = configPath(cfgFile, template)
+		}
+
 		return pushRun(template, format, key, sourcesList, storage, config, force, !plain)
 	},
 }
