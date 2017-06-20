@@ -53,9 +53,10 @@ func init() {
 func initConfig() {
 	if cfgFile != "" { // enable ability to specify config file via flag
 		viper.SetConfigFile(cfgFile)
+	} else {
+		viper.AddConfigPath(".")
 	}
 
-	viper.AddConfigPath(".")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// Read config file
