@@ -27,7 +27,7 @@ jobs:
       go: tip
       os: linux
   
-    - stage: GitHub releases
+    - stage: GitHub & DockerHub releases
       script: skip
       before_deploy:
         - GOOS=linux go build -o releases/casper
@@ -48,5 +48,12 @@ jobs:
           - "releases/casper.windows-amd64.tar.gz"
           - "releases/sha256sum.txt"
         skip_cleanup: true
+        on:
+          tags: true
+    - stage: GitHub & DockerHub releases
+      script: skip
+      deploy:
+        provider: script
+        script: ./dockerpush.sh
         on:
           tags: true
