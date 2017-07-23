@@ -1,0 +1,28 @@
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  version = "1.5.0"
+
+[[constraint]]
+  name = "github.com/hashicorp/consul"
+  version = "0.9.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/sergi/go-diff"
+
+[[constraint]]
+  name = "github.com/spf13/cast"
+  version = "1.1.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/spf13/cobra"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/spf13/viper"
+
+[[constraint]]
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
