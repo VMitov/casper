@@ -14,9 +14,10 @@ jobs:
         - test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"
         - test -z "$(go list ./... 2>&1 | grep -v /vendor/ | xargs -L1 golint | tee /dev/stderr)"
       script: goveralls -service=travis-ci
-    
+
     - &test
       stage: test alternative environments
+      install: skip
       script: go test -race $(go list ./... | grep -v /vendor/)
       go: 1.x
       os: linux
@@ -26,8 +27,9 @@ jobs:
     - <<: *test
       go: tip
       os: linux
-  
+
     - stage: GitHub releases
+      install: skip
       script: skip
       before_deploy:
         - GOOS=linux go build -o releases/casper
