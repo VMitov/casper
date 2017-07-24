@@ -134,6 +134,12 @@
   revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
 
 [[projects]]
+  branch = "v2"
+  name = "github.com/urfave/cli"
+  packages = ["."]
+  revision = "61c3eb6ba1da1df17cd50f1456a9252d92bf5edd"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
@@ -154,6 +160,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c028f0a66059fd07621dcaed4e011d55106e122eebffacc7515416ecdf709863"
+  inputs-digest = "74621416b3ca08533252b06e60857bc01f6bd87a52fd4239ce1d2d5bc0f8f2bd"
   solver-name = "gps-cdcl"
   solver-version = 1
