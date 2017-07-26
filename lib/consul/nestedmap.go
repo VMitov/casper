@@ -35,14 +35,14 @@ func (j NestedMap) add(path, value string, isFolder bool) {
 	v, ok := j[key]
 	if ok {
 		switch nv := v.(type) {
-		case *NestedMap:
-			(*nv)[folderValKey] = value
+		case NestedMap:
+			nv[folderValKey] = value
 			return
 		}
 	}
 
 	if isFolder {
-		j[key] = &NestedMap{folderValKey: value}
+		j[key] = NestedMap{folderValKey: value}
 		return
 	}
 	j[key] = value
@@ -50,19 +50,19 @@ func (j NestedMap) add(path, value string, isFolder bool) {
 
 // Add to key value with nested path
 func (j NestedMap) addPath(key, path, value string, isFolder bool) {
-	var n *NestedMap
+	var n NestedMap
 
 	// Check if key exists
 	v, ok := j[key]
 	if ok {
 		switch nv := v.(type) {
-		case *NestedMap:
+		case NestedMap:
 			n = nv
 		default:
-			n = &NestedMap{folderValKey: nv}
+			n = NestedMap{folderValKey: nv}
 		}
 	} else {
-		n = &NestedMap{}
+		n = NestedMap{}
 	}
 
 	n.add(path, value, isFolder)
