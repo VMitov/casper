@@ -31,8 +31,8 @@ type Change struct {
 }
 
 // KVPairsToMap creates NestedMap from Consul KVPairs
-func KVPairsToMap(pairs api.KVPairs) *NestedMap {
-	j := &NestedMap{}
+func KVPairsToMap(pairs api.KVPairs) NestedMap {
+	j := NestedMap{}
 	for _, p := range pairs {
 		j.Add(p.Key, string(p.Value))
 	}
