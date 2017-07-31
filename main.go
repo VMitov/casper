@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/urfave/cli"
+	cli "gopkg.in/urfave/cli.v2"
+	"gopkg.in/urfave/cli.v2/altsrc"
 )
 
 const casper = `
@@ -28,16 +29,17 @@ const casper = `
 
 func main() {
 	sourcesFlags := []cli.Flag{
-		&cli.StringFlag{
+		altsrc.NewStringFlag(&cli.StringFlag{
 			Name: "template", Aliases: []string{"t"},
 			Usage: "template file",
 			Value: "template.yaml",
-		},
-		&cli.StringSliceFlag{
+		}),
+		// TODO: Move to internal stringSlice when fixed in v2
+		altsrc.NewGenericFlag(&cli.GenericFlag{
 			Name: "sources", Aliases: []string{"s"},
 			Usage: "[key=value, file://file.json]",
-			Value: cli.NewStringSlice("file://sources.json"),
-		},
+			Value: &stringSliceFlag{"file://sources.json"},
+		}),
 	}
 
 	app := &cli.App{
@@ -45,25 +47,29 @@ func main() {
 		HelpName: "casper",
 		Usage:    "Configuration Automation for Safe and Painless Environment Releases\n" + casper,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
+			altsrc.NewStringFlag(&cli.StringFlag{
 				Name:  "storage",
 				Usage: "[file, consul]",
-			},
-			&cli.StringFlag{
+			}),
+			altsrc.NewStringFlag(&cli.StringFlag{
 				Name:  "file-path",
 				Usage: "casper.json",
 				Value: "casper.json",
-			},
-			&cli.StringFlag{
+			}),
+			altsrc.NewStringFlag(&cli.StringFlag{
 				Name:  "consul-addr",
 				Usage: "http://127.0.0.1:8500/?token=the_one_ring",
 				Value: "http://127.0.0.1:8500/",
-			},
-
-			&cli.StringFlag{
+			}),
+			altsrc.NewStringFlag(&cli.StringFlag{
 				Name: "ignore", Aliases: []string{"i"},
 				Usage: "keys given this value will be ignored by Casper",
 				Value: "_ignore",
+			}),
+			&cli.StringFlag{
+				Name:  "config",
+				Usage: "file to load configurations from",
+				Value: "config.yaml",
 			},
 		},
 		Commands: []*cli.Command{
@@ -82,7 +88,7 @@ func main() {
 				Usage:   "build the source for a single service",
 				Flags:   sourcesFlags,
 				Action: func(c *cli.Context) error {
-					fmt.Println("build: ", c.Args())
+					fmt.Println("build: ", c.Args(), c.StringSlice("sources"), c.LocalFlagNames(), c.FlagNames())
 					return nil
 				},
 			},
@@ -91,14 +97,14 @@ func main() {
 				Aliases: []string{"d"},
 				Usage:   "show the difference between the source and the content of a service",
 				Flags: append([]cli.Flag{
-					&cli.StringFlag{
+					altsrc.NewStringFlag(&cli.StringFlag{
 						Name: "key", Aliases: []string{"k"},
 						Usage: "specific key to diff",
-					},
-					&cli.StringFlag{
+					}),
+					altsrc.NewStringFlag(&cli.StringFlag{
 						Name: "plain", Aliases: []string{"p"},
 						Usage: "specific key to diff",
-					},
+					}),
 				}, sourcesFlags...),
 				Action: func(c *cli.Context) error {
 					fmt.Println("diff: ", c.Args())
@@ -110,14 +116,14 @@ func main() {
 				Aliases: []string{"p"},
 				Usage:   "push the source for a service",
 				Flags: append([]cli.Flag{
-					&cli.StringFlag{
+					altsrc.NewStringFlag(&cli.StringFlag{
 						Name:  "force",
 						Usage: "push the changes without asking for confirmation",
-					},
-					&cli.StringFlag{
+					}),
+					altsrc.NewStringFlag(&cli.StringFlag{
 						Name: "key", Aliases: []string{"k"},
 						Usage: "specific key to diff",
-					},
+					}),
 				}, sourcesFlags...),
 				Action: func(c *cli.Context) error {
 					fmt.Println("push: ", c.Args())
@@ -127,5 +133,10 @@ func main() {
 		},
 	}
 
+	inputSource := altsrc.NewYamlSourceFromFlagFunc("config")
+	app.Before = altsrc.InitInputSourceWithContext(app.Flags, inputSource)
+	for _, cmd := range app.Commands {
+		cmd.Before = altsrc.InitInputSourceWithContext(cmd.Flags, inputSource)
+	}
 	app.Run(os.Args)
 }
