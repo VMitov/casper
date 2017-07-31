@@ -38,5 +38,6 @@ casper build
 	* consul - Consul (Formats: json, yaml)
 		* addr - address of the consul instance e.g: `localhost:8500`
 		* ignore - keys given the value of this setting in configuration will be ignored by Casper. The default such value is "_ignore"
+		* token - Consul ACL token
 	* file - File (Formats: string)
 		* path - path to the file

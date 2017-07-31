@@ -55,11 +55,15 @@ func newConsulStorageConfig(config map[string]interface{}) (storage, error) {
 		ignoreVal = defaultIgnoreVal
 	}
 
-	return newConsulStorage(strAddr, ignoreVal)
+	token, _ := config["token"].(string)
+
+	return newConsulStorage(strAddr, ignoreVal, token)
 }
 
-func newConsulStorage(addr, ignoreVal string) (storage, error) {
-	cfg := &api.Config{}
+func newConsulStorage(addr, ignoreVal, token string) (storage, error) {
+	cfg := &api.Config{
+		Token: token,
+	}
 	if addr != "" {
 		addr, err := url.Parse(addr)
 		if err != nil {
