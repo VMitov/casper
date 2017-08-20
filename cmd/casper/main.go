@@ -8,7 +8,7 @@ import (
 	"gopkg.in/urfave/cli.v2/altsrc"
 )
 
-const casper = `
+const maskot = `
 	     .-----.
 	   .' -   - '.
 	  /  .-. .-.  \
@@ -34,18 +34,17 @@ func main() {
 			Usage: "template file",
 			Value: "template.yaml",
 		}),
-		// TODO: Move to internal stringSlice when fixed in v2
-		altsrc.NewGenericFlag(&cli.GenericFlag{
+		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
 			Name: "sources", Aliases: []string{"s"},
 			Usage: "[key=value, file://file.json]",
-			Value: &stringSliceFlag{"file://sources.json"},
+			Value: cli.NewStringSlice("file://sources.json"),
 		}),
 	}
 
 	app := &cli.App{
 		Name:     "casper",
 		HelpName: "casper",
-		Usage:    "Configuration Automation for Safe and Painless Environment Releases\n" + casper,
+		Usage:    "Configuration Automation for Safe and Painless Environment Releases\n" + maskot,
 		Flags: []cli.Flag{
 			altsrc.NewStringFlag(&cli.StringFlag{
 				Name:  "storage",
@@ -88,8 +87,7 @@ func main() {
 				Usage:   "build the source for a single service",
 				Flags:   sourcesFlags,
 				Action: func(c *cli.Context) error {
-					fmt.Println("build: ", c.Args(), c.StringSlice("sources"), c.LocalFlagNames(), c.FlagNames())
-					return nil
+					return buildRun(c.String("template"), c.StringSlice("sources"))
 				},
 			},
 			{
@@ -138,5 +136,8 @@ func main() {
 	for _, cmd := range app.Commands {
 		cmd.Before = altsrc.InitInputSourceWithContext(cmd.Flags, inputSource)
 	}
-	app.Run(os.Args)
+
+	if err := app.Run(os.Args); err != nil {
+		fmt.Println(err)
+	}
 }

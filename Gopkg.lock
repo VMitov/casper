@@ -155,7 +155,7 @@
   branch = "v2"
   name = "gopkg.in/urfave/cli.v2"
   packages = [".","altsrc"]
-  revision = "61c3eb6ba1da1df17cd50f1456a9252d92bf5edd"
+  revision = "50a0fdeea6330854c7b05371cce1fac8c7e636d2"
 
 [[projects]]
   branch = "v2"
