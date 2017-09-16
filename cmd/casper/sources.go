@@ -27,42 +27,6 @@ func (e sourceFormatError) Error() string {
 
 const configScheme = "config"
 
-func getMultiSourcer(srcs []string) (*source.Source, error) {
-	sourceTypes := map[string]getSourcer{
-		configScheme: getConfigSource,
-		"file":       getFileSource,
-	}
-
-	sourceList := make([]source.ValuesSourcer, len(srcs))
-	for i, s := range srcs {
-		u, err := url.Parse(s)
-		if err != nil {
-			return nil, err
-		}
-
-		if u.Scheme == "" {
-			// Default to config
-			u = &url.URL{
-				Scheme:   configScheme,
-				RawQuery: s,
-			}
-		}
-
-		getSourcer, ok := sourceTypes[u.Scheme]
-		fmt.Println(getSourcer, ok)
-		if !ok {
-			return nil, errSourceFormat
-		}
-
-		sourceList[i], err = getSourcer(u)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return source.NewMultiSourcer(sourceList...)
-}
-
 type getSourcer func(u *url.URL) (*source.Source, error)
 
 func getConfigSource(u *url.URL) (*source.Source, error) {
@@ -88,7 +52,6 @@ func getFileSource(u *url.URL) (*source.Source, error) {
 		return nil, err
 	}
 
-	fmt.Println(r, format)
 	s, err := source.NewFileSource(r, format)
 	if err != nil {
 		return nil, sourceFormatError{"unable to create file source", err}
