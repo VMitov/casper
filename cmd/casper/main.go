@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	casper "github.com/miracl/casper/lib"
-
 	cli "gopkg.in/urfave/cli.v2"
 	"gopkg.in/urfave/cli.v2/altsrc"
 )
@@ -30,6 +29,10 @@ const maskot = `
 	        ''---.   |
 	           ,__) /
 	            '..'`
+
+const (
+	defaultPath = "config.yaml"
+)
 
 func main() {
 	storageFlags := []cli.Flag{
@@ -58,7 +61,7 @@ func main() {
 		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
 			Name: "sources", Aliases: []string{"s"},
 			Usage: "[key=value, file://file.json]",
-			Value: cli.NewStringSlice("file://sources.json"),
+			Value: cli.NewStringSlice("file://source.json"),
 		}),
 	}
 
@@ -75,7 +78,7 @@ func main() {
 			&cli.StringFlag{
 				Name: "config", Aliases: []string{"c"},
 				Usage: "file to load configurations from",
-				Value: "config.yaml",
+				Value: defaultPath,
 			},
 		},
 		Commands: []*cli.Command{
@@ -141,8 +144,7 @@ func main() {
 					if err != nil {
 						return err
 					}
-
-					fmt.Println(string(out))
+					fmt.Print(string(out))
 					return nil
 				},
 			},
@@ -278,7 +280,17 @@ func main() {
 		},
 	}
 
-	inputSource := altsrc.NewYamlSourceFromFlagFunc("config")
+	inputSource := func(context *cli.Context) (altsrc.InputSourceContext, error) {
+		config := context.String("config")
+		_, err := os.Open(config)
+		if os.IsNotExist(err) {
+			return &altsrc.MapInputSource{}, nil
+		}
+
+		return altsrc.NewYamlSourceFromFlagFunc("config")(context)
+	}
+
+	// inputSource := altsrc.NewYamlSourceFromFlagFunc("config")
 	app.Before = altsrc.InitInputSourceWithContext(app.Flags, inputSource)
 	for _, cmd := range app.Commands {
 		cmd.Before = altsrc.InitInputSourceWithContext(cmd.Flags, inputSource)

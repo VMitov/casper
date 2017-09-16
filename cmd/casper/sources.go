@@ -43,7 +43,7 @@ func getConfigSource(u *url.URL) (*source.Source, error) {
 }
 
 func getFileSource(u *url.URL) (*source.Source, error) {
-	path := u.Hostname()
+	path := u.Hostname() + u.EscapedPath()
 	pathSlice := strings.Split(path, ".")
 	format := pathSlice[len(pathSlice)-1]
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -26,6 +27,44 @@ func newConfig(path string, opts ...func(*config) error) (*config, error) {
 	}
 
 	return config, nil
+}
+
+func (c *config) open(path string) (*os.File, error) {
+	if filepath.IsAbs(path) {
+		return os.Open(path)
+	}
+
+	if c.path == defaultPath {
+		return os.Open(path)
+	}
+
+	return c.find(path)
+}
+
+// find checks if path is relative to current dir or to config file
+func (c *config) find(path string) (*os.File, error) {
+	absCfgPath, err := filepath.Abs(c.path)
+	if err != nil {
+		return nil, err
+	}
+	pathRelToConfig := filepath.Clean(filepath.Join(filepath.Dir(absCfgPath), path))
+
+	pathRelToCurDir, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, p := range []string{pathRelToCurDir, pathRelToConfig} {
+		f, err := os.Open(p)
+		if err == nil {
+			return f, nil
+		}
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+	}
+
+	return nil, fmt.Errorf("unable to find file %v; tried: %v, %v", path, pathRelToCurDir, pathRelToConfig)
 }
 
 // withPath sets the config file if it is not in the current directory.
@@ -67,7 +106,8 @@ func (c *config) withSources(sources []string) error {
 			return errSourceFormat
 		}
 
-		if c.path != "" {
+		// TODO!
+		if c.path != defaultPath && !filepath.IsAbs(u.Hostname()) {
 			absCfgPath, err := filepath.Abs(c.path)
 			if err != nil {
 				return err
@@ -93,16 +133,8 @@ func withSources(sources []string) func(*config) error {
 }
 
 func (c *config) withTemplate(path string) error {
-	if c.path != "" {
-		absCfgPath, err := filepath.Abs(c.path)
-		if err != nil {
-			return err
-		}
-		path = filepath.Clean(filepath.Join(filepath.Dir(absCfgPath), path))
-	}
-
 	var err error
-	c.template, err = os.Open(path)
+	c.template, err = c.open(path)
 	return err
 }
 
