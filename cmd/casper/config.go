@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/miracl/casper/lib/source"
+	"github.com/miracl/casper/source"
 )
 
 type config struct {

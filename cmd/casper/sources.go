@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/miracl/casper/lib/source"
+	"github.com/miracl/casper/source"
 )
 
 var errSourceFormat = errors.New("Sources invalid format")

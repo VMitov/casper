@@ -5,12 +5,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/miracl/casper/lib/caspertest"
+	"github.com/miracl/casper/test"
 )
 
 func TestMain(t *testing.T) {
 	os.Args = []string{"casper", "-c", "../../example/config.yaml", "build", "-t", "../../example/template.yaml"}
-	out := caspertest.GetStdout(t, main)
+	out := test.GetStdout(t, main)
 
 	expected, err := ioutil.ReadFile("../../example/output.yaml")
 	if err != nil {

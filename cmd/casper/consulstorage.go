@@ -6,8 +6,8 @@ import (
 	"net/url"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/miracl/casper/lib/consul"
-	"github.com/miracl/casper/lib/diff"
+	"github.com/miracl/casper/consul"
+	"github.com/miracl/casper/diff"
 	yaml "gopkg.in/yaml.v2"
 )
 

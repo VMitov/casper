@@ -1,4 +1,4 @@
-package caspertest
+package test
 
 import "os"
 
