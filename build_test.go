@@ -43,8 +43,8 @@ func TestBuild(t *testing.T) {
 
 			// Build
 			config, err := BuildConfig{
-				Tmlp:   bytes.NewBufferString(tc.tmpl),
-				Source: tc.source,
+				Template: bytes.NewBufferString(tc.tmpl),
+				Source:   tc.source,
 			}.Build()
 			if err != nil {
 				t.Fatal(err)

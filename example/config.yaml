@@ -3,4 +3,4 @@ storage: file
 file-path: output.yaml 
 sources:
   - placeholder1=val1
-  - placeholder2=val2
+  - file://source.yaml

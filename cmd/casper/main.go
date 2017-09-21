@@ -11,7 +11,7 @@ import (
 	"gopkg.in/urfave/cli.v2/altsrc"
 )
 
-const maskot = `
+const mascot = `
 	     .-----.
 	   .' -   - '.
 	  /  .-. .-.  \
@@ -31,54 +31,89 @@ const maskot = `
 	            '..'`
 
 const (
+	configFlag  = "config"
 	defaultPath = "config.yaml"
 )
 
 func main() {
 	storageFlags := []cli.Flag{
 		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:  "storage",
-			Usage: "[file, consul]",
+			Name:    "storage",
+			Usage:   "[file, consul]",
+			EnvVars: []string{"CASPER_STORAGE"},
+		}),
+		newPathFlag(&cli.StringFlag{
+			Name:    "file-path",
+			Usage:   "casper.json",
+			Value:   "casper.json",
+			EnvVars: []string{"CASPER_FILE_PATH"},
 		}),
 		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:  "file-path",
-			Usage: "casper.json",
-			Value: "casper.json",
+			Name:    "consul-addr",
+			Usage:   fmt.Sprintf("http://127.0.0.1:8500/?ignore=%v&token=aclToken", defaultIgnoreVal),
+			Value:   fmt.Sprintf("http://127.0.0.1:8500/?ignore=%v", defaultIgnoreVal),
+			EnvVars: []string{"CASPER_CONSUL_ADDR"},
 		}),
+	}
+
+	formatFlag := []cli.Flag{
 		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:  "consul-addr",
-			Usage: "http://127.0.0.1:8500/?token=the_one_ring",
-			Value: "http://127.0.0.1:8500/",
+			Name: "format", Aliases: []string{"f"},
+			Usage: "format of the output",
+			Value: "",
 		}),
 	}
 
 	sourcesFlags := []cli.Flag{
-		altsrc.NewStringFlag(&cli.StringFlag{
+		newPathFlag(&cli.StringFlag{
 			Name: "template", Aliases: []string{"t"},
-			Usage: "template file",
-			Value: "template.yaml",
+			Usage:   "template file",
+			Value:   "template.yaml",
+			EnvVars: []string{"CASPER_TEMPLATE"},
 		}),
-		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		newSourcesSliceFlag(&cli.StringSliceFlag{
 			Name: "sources", Aliases: []string{"s"},
-			Usage: "[key=value, file://file.json]",
-			Value: cli.NewStringSlice("file://source.json"),
+			Usage:   "[key=value, file://file.json]",
+			Value:   cli.NewStringSlice("file://source.json"),
+			EnvVars: []string{"CASPER_SOURCES"},
 		}),
 	}
 
-	keyFlag := altsrc.NewStringFlag(&cli.StringFlag{
-		Name: "key", Aliases: []string{"k"},
-		Usage: "specific key to diff",
-	})
+	keyFlag := []cli.Flag{
+		altsrc.NewStringFlag(&cli.StringFlag{
+			Name: "key", Aliases: []string{"k"},
+			Usage: "specific key to diff",
+		}),
+	}
+
+	plainFlag := []cli.Flag{
+		altsrc.NewBoolFlag(&cli.BoolFlag{
+			Name: "plain", Aliases: []string{"p"},
+			Usage:   "disable colorful output",
+			Value:   false,
+			EnvVars: []string{"CASPER_PLAIN"},
+		}),
+	}
+
+	forceFlag := []cli.Flag{
+		altsrc.NewBoolFlag(&cli.BoolFlag{
+			Name:    "force",
+			Usage:   "push the changes without asking for confirmation",
+			Value:   false,
+			EnvVars: []string{"CASPER_SILENT"},
+		}),
+	}
 
 	app := &cli.App{
 		Name:     "casper",
 		HelpName: "casper",
-		Usage:    "Configuration Automation for Safe and Painless Environment Releases\n" + maskot,
+		Usage:    "Configuration Automation for Safe and Painless Environment Releases\n" + mascot,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name: "config", Aliases: []string{"c"},
-				Usage: "file to load configurations from",
-				Value: defaultPath,
+				Name: configFlag, Aliases: []string{"c"},
+				Usage:   "file to load configurations from",
+				Value:   defaultPath,
+				EnvVars: []string{"CASPER_CONFIG"},
 			},
 		},
 		Commands: []*cli.Command{
@@ -86,211 +121,44 @@ func main() {
 				Name:    "fetch",
 				Aliases: []string{"f"},
 				Usage:   "get the current content of a service",
-				Flags: append(
-					storageFlags,
-					altsrc.NewStringFlag(&cli.StringFlag{
-						Name: "format", Aliases: []string{"f"},
-						Usage: "format of the output",
-						Value: "",
-					}),
-				),
-				Action: func(c *cli.Context) error {
-					conf, err := newConfig(c.String("config"),
-						withTemplate(c.String("template")),
-						withSources(c.StringSlice("sources")),
-					)
-					if err != nil {
-						return err
-					}
-
-					switch c.String("storage") {
-					case "file":
-						conf.withFileStorage(c.String("file-path"))
-					case "consul":
-						if err := conf.withConsulStorage(c.String("consul-addr")); err != nil {
-							return err
-						}
-					default:
-						return fmt.Errorf("invalid storage type %v", c.String("storage"))
-					}
-
-					out, err := conf.storage.String(c.String("format"))
-					if err != nil {
-						return err
-					}
-
-					fmt.Println(out)
-					return nil
-				},
+				Flags:   combineFlags(storageFlags, formatFlag),
+				Action:  fetchAction,
 			},
 			{
 				Name:    "build",
 				Aliases: []string{"b"},
 				Usage:   "build the source for a single service",
 				Flags:   sourcesFlags,
-				Action: func(c *cli.Context) error {
-					conf, err := newConfig(c.String("config"),
-						withTemplate(c.String("template")),
-						withSources(c.StringSlice("sources")),
-					)
-					if err != nil {
-						return err
-					}
-
-					out, err := casper.BuildConfig{
-						Tmlp:   conf.template,
-						Source: conf.source,
-					}.Build()
-					if err != nil {
-						return err
-					}
-					fmt.Print(string(out))
-					return nil
-				},
+				Action:  buildAction,
 			},
 			{
 				Name:    "diff",
 				Aliases: []string{"d"},
 				Usage:   "show the difference between the source and the content of a service",
-				Flags: append([]cli.Flag{
-					keyFlag,
-					altsrc.NewBoolFlag(&cli.BoolFlag{
-						Name: "plain", Aliases: []string{"p"},
-						Usage: "disable colorful output",
-						Value: false,
-					}),
-				}, append(storageFlags, sourcesFlags...)...),
-				Action: func(c *cli.Context) error {
-					conf, err := newConfig(c.String("config"),
-						withTemplate(c.String("template")),
-						withSources(c.StringSlice("sources")),
-					)
-					if err != nil {
-						return err
-					}
-
-					switch c.String("storage") {
-					case "file":
-						conf.withFileStorage(c.String("file-path"))
-					case "consul":
-						if err := conf.withConsulStorage(c.String("consul-addr")); err != nil {
-							return err
-						}
-					default:
-						return fmt.Errorf("invalid storage type %v", c.String("storage"))
-					}
-
-					out, err := casper.BuildConfig{
-						Tmlp:   conf.template,
-						Source: conf.source,
-					}.Build()
-					if err != nil {
-						return err
-					}
-
-					templateName := conf.template.Name()
-					templateNameSlice := strings.Split(templateName, ".")
-					format := templateNameSlice[len(templateNameSlice)-1]
-					// default storage format
-
-					changes, err := conf.storage.GetChanges(out, format, c.String("key"))
-					if err != nil {
-						return err
-					}
-
-					fmt.Println(strChanges(changes, c.String("key"), conf.storage, !c.Bool("plain")))
-					return nil
-				},
+				Flags:   combineFlags(storageFlags, sourcesFlags, keyFlag, plainFlag),
+				Action:  diffAction,
 			},
 			{
 				Name:    "push",
 				Aliases: []string{"p"},
 				Usage:   "push the source for a service",
-				Flags: append([]cli.Flag{
-					keyFlag,
-					altsrc.NewBoolFlag(&cli.BoolFlag{
-						Name:  "force",
-						Usage: "push the changes without asking for confirmation",
-						Value: false,
-					}),
-					altsrc.NewBoolFlag(&cli.BoolFlag{
-						Name: "plain", Aliases: []string{"p"},
-						Usage: "disable colorful output",
-						Value: false,
-					}),
-				}, append(storageFlags, sourcesFlags...)...),
-				Action: func(c *cli.Context) error {
-					conf, err := newConfig(c.String("config"),
-						withTemplate(c.String("template")),
-						withSources(c.StringSlice("sources")),
-					)
-					if err != nil {
-						return err
-					}
-
-					switch c.String("storage") {
-					case "file":
-						conf.withFileStorage(c.String("file-path"))
-					case "consul":
-						if err := conf.withConsulStorage(c.String("consul-addr")); err != nil {
-							return err
-						}
-					default:
-						return fmt.Errorf("invalid storage type %v", c.String("storage"))
-					}
-
-					out, err := casper.BuildConfig{
-						Tmlp:   conf.template,
-						Source: conf.source,
-					}.Build()
-					if err != nil {
-						return err
-					}
-
-					templateName := conf.template.Name()
-					templateNameSlice := strings.Split(templateName, ".")
-					format := templateNameSlice[len(templateNameSlice)-1]
-					// default storage format
-
-					changes, err := conf.storage.GetChanges(out, format, c.String("key"))
-					if err != nil {
-						return err
-					}
-
-					pretty := !c.Bool("plain")
-					fmt.Println(strChanges(changes, c.String("key"), conf.storage, pretty))
-					if changes.Len() == 0 {
-						return nil
-					}
-
-					if !c.Bool("force") {
-						// prompt for agreement
-						fmt.Print("Continue[y/N]: ")
-						input, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-						if strings.ToLower(strings.TrimRight(input, "\r\n")) != "y" {
-							fmt.Println("Canceled")
-							return nil
-						}
-					}
-
-					fmt.Println("Applying changes...")
-					return conf.storage.Push(changes)
-				},
+				Flags:   combineFlags(storageFlags, sourcesFlags, keyFlag, plainFlag, forceFlag),
+				Action:  pushAction,
 			},
 		},
 	}
 
+	// inputSource returns empty altsrc.MapInputSource if config doesn't exists.
 	inputSource := func(context *cli.Context) (altsrc.InputSourceContext, error) {
-		config := context.String("config")
+		config := context.String(configFlag)
 		_, err := os.Open(config)
 		if os.IsNotExist(err) {
 			return &altsrc.MapInputSource{}, nil
 		}
 
-		return altsrc.NewYamlSourceFromFlagFunc("config")(context)
+		return altsrc.NewYamlSourceFromFlagFunc(configFlag)(context)
 	}
 
-	// inputSource := altsrc.NewYamlSourceFromFlagFunc("config")
 	app.Before = altsrc.InitInputSourceWithContext(app.Flags, inputSource)
 	for _, cmd := range app.Commands {
 		cmd.Before = altsrc.InitInputSourceWithContext(cmd.Flags, inputSource)
@@ -299,4 +167,165 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func fetchAction(c *cli.Context) error {
+	ctx, err := newContext(c.String(configFlag),
+		withSources(c.StringSlice("sources")),
+	)
+	if err != nil {
+		return err
+	}
+
+	if err := withStorage(ctx, c); err != nil {
+		return err
+	}
+
+	out, err := ctx.storage.String(c.String("format"))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(out)
+	return nil
+}
+
+func buildAction(c *cli.Context) error {
+	ctx, err := newContext(c.String(configFlag),
+		withTemplate(c.String("template")),
+		withSources(c.StringSlice("sources")),
+	)
+	if err != nil {
+		return err
+	}
+
+	out, err := casper.BuildConfig{
+		Template: ctx.template,
+		Source:   ctx.source,
+	}.Build()
+	if err != nil {
+		return err
+	}
+	fmt.Print(string(out))
+	return nil
+}
+
+func diffAction(c *cli.Context) error {
+	ctx, err := newContext(c.String(configFlag),
+		withTemplate(c.String("template")),
+		withSources(c.StringSlice("sources")),
+	)
+	if err != nil {
+		return err
+	}
+
+	if err := withStorage(ctx, c); err != nil {
+		return err
+	}
+
+	out, err := casper.BuildConfig{
+		Template: ctx.template,
+		Source:   ctx.source,
+	}.Build()
+	if err != nil {
+		return err
+	}
+
+	templateName := ctx.template.Name()
+	templateNameSlice := strings.Split(templateName, ".")
+	format := templateNameSlice[len(templateNameSlice)-1]
+	// default storage format
+
+	changes, err := ctx.storage.GetChanges(out, format, c.String("key"))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(strChanges(changes, c.String("key"), ctx.storage, !c.Bool("plain")))
+	return nil
+}
+
+func pushAction(c *cli.Context) error {
+	ctx, err := newContext(c.String(configFlag),
+		withTemplate(c.String("template")),
+		withSources(c.StringSlice("sources")),
+	)
+	if err != nil {
+		return err
+	}
+
+	if err := withStorage(ctx, c); err != nil {
+		return err
+	}
+
+	out, err := casper.BuildConfig{
+		Template: ctx.template,
+		Source:   ctx.source,
+	}.Build()
+	if err != nil {
+		return err
+	}
+
+	templateName := ctx.template.Name()
+	templateNameSlice := strings.Split(templateName, ".")
+	format := templateNameSlice[len(templateNameSlice)-1]
+	// default storage format
+
+	changes, err := ctx.storage.GetChanges(out, format, c.String("key"))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(strChanges(changes, c.String("key"), ctx.storage, !c.Bool("plain")))
+	if changes.Len() == 0 {
+		return nil
+	}
+
+	if !c.Bool("force") {
+		// prompt for agreement
+		fmt.Print("Continue[y/N]: ")
+		input, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+		if strings.ToLower(strings.TrimRight(input, "\r\n")) != "y" {
+			fmt.Println("Canceled")
+			return nil
+		}
+	}
+
+	fmt.Println("Applying changes...")
+	return ctx.storage.Push(changes)
+}
+
+func combineFlags(flagLists ...[]cli.Flag) []cli.Flag {
+	flags := []cli.Flag{}
+
+	for _, l := range flagLists {
+		flags = append(flags, l...)
+	}
+
+	return flags
+}
+
+func withStorage(ctx *context, c *cli.Context) error {
+	switch c.String("storage") {
+	case "file":
+		ctx.withFileStorage(c.String("file-path"))
+	case "consul":
+		if err := ctx.withConsulStorage(c.String("consul-addr")); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid storage type %v", c.String("storage"))
+	}
+
+	return nil
+}
+
+func strChanges(cs changes, key string, s storage, pretty bool) string {
+	if cs.Len() == 0 {
+		if key != "" {
+			return fmt.Sprintf("No changes for key %v", key)
+		}
+		return fmt.Sprintf("No changes")
+	}
+	return s.Diff(cs, pretty)
 }
