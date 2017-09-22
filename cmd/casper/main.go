@@ -11,6 +11,8 @@ import (
 	"gopkg.in/urfave/cli.v2/altsrc"
 )
 
+var version = "devel"
+
 const mascot = `
 	     .-----.
 	   .' -   - '.
@@ -107,6 +109,7 @@ func main() {
 	app := &cli.App{
 		Name:     "casper",
 		HelpName: "casper",
+		Version:  version,
 		Usage:    "Configuration Automation for Safe and Painless Environment Releases\n" + mascot,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
