@@ -34,8 +34,9 @@ const mascot = `
 	            '..'`
 
 const (
-	configFlag  = "config"
-	defaultPath = "config.yaml"
+	configFlag       = "config"
+	defaultPath      = "config.yaml"
+	defaultIgnoreVal = "_ignore"
 )
 
 func main() {
@@ -325,7 +326,7 @@ func withStorage(ctx *context, c *cli.Context) error {
 	return nil
 }
 
-func strChanges(cs changes, key string, s storage, pretty bool) string {
+func strChanges(cs casper.Changes, key string, s casper.Storage, pretty bool) string {
 	if cs.Len() == 0 {
 		if key != "" {
 			return fmt.Sprintf("No changes for key %v", key)

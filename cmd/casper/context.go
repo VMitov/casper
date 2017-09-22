@@ -5,28 +5,18 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/miracl/casper"
 	"github.com/miracl/casper/source"
+	consulstorage "github.com/miracl/casper/storage/consul"
+	filestorage "github.com/miracl/casper/storage/file"
 	"github.com/pkg/errors"
 )
 
 type context struct {
 	path     string
 	template *os.File
-	storage  storage
+	storage  casper.Storage
 	source   *source.Source
-}
-
-type storage interface {
-	String(format string) (string, error)
-	FormatIsValid(format string) bool
-	DefaultFormat() string
-	GetChanges(config []byte, format, key string) (changes, error)
-	Diff(cs changes, pretty bool) string
-	Push(cs changes) error
-}
-
-type changes interface {
-	Len() int
 }
 
 func newContext(path string, opts ...func(*context) error) (*context, error) {
@@ -111,7 +101,7 @@ func withTemplate(path string) func(*context) error {
 }
 
 func (c *context) withFileStorage(path string) {
-	c.storage = &fileStorage{path}
+	c.storage = filestorage.New(path)
 }
 
 func withFileStorage(path string) func(*context) error {
@@ -123,7 +113,7 @@ func withFileStorage(path string) func(*context) error {
 
 func (c *context) withConsulStorage(addr string) error {
 	var err error
-	c.storage, err = newConsulStorage(addr)
+	c.storage, err = consulstorage.New(addr)
 	return errors.Wrap(err, "creating Consul storage failed")
 }
 

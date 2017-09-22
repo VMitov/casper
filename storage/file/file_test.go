@@ -1,4 +1,4 @@
-package main
+package file
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func TestFileStorageString(t *testing.T) {
 			}
 			defer os.Remove(f.Name())
 
-			s := &fileStorage{path: f.Name()}
+			s := New(f.Name())
 			out, err := s.String("string")
 			if err != nil {
 				t.Fatal(err)
@@ -67,7 +67,7 @@ func TestFileStorageDiff(t *testing.T) {
 			}
 			defer os.Remove(f.Name())
 
-			s := &fileStorage{path: f.Name()}
+			s := New(f.Name())
 			changes, err := s.GetChanges([]byte(tc.conf), "string", "")
 			if err != nil {
 				t.Fatal(err)
@@ -106,7 +106,7 @@ func TestFileStoragePush(t *testing.T) {
 			}
 			defer os.Remove(f.Name())
 
-			s := &fileStorage{path: f.Name()}
+			s := New(f.Name())
 			changes, err := s.GetChanges([]byte(tc.conf), "string", "")
 			if err != nil {
 				t.Fatal(err)
@@ -149,7 +149,7 @@ func TestFileStorageFormats(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &fileStorage{}
+			s := &Storage{}
 
 			if !s.FormatIsValid(tc.fmt) {
 				t.Errorf("%v should have been valid", tc.fmt)

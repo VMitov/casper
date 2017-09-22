@@ -1,4 +1,4 @@
-package main
+package file
 
 import (
 	"bufio"
@@ -7,17 +7,23 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/miracl/casper"
 	"github.com/pkg/errors"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
-// fileStorage is an implementation of the storage interface that stores in file.
+// Storage is an implementation of the storage interface that stores in file.
 // This implementation is mostly for testing.
-type fileStorage struct {
+type Storage struct {
 	path string
 }
 
-func (s fileStorage) String(format string) (string, error) {
+// New returns new file storage
+func New(path string) *Storage {
+	return &Storage{path: path}
+}
+
+func (s Storage) String(format string) (string, error) {
 	data, err := ioutil.ReadFile(s.path)
 	if err != nil {
 		return "", errors.Wrapf(err, "reading file %v failed", s.path)
@@ -27,17 +33,17 @@ func (s fileStorage) String(format string) (string, error) {
 }
 
 // FormatIsValid returns if the format is valid for this storage
-func (s fileStorage) FormatIsValid(format string) bool {
+func (s Storage) FormatIsValid(format string) bool {
 	return true
 }
 
 // DefaultFormat returns the default format
-func (s fileStorage) DefaultFormat() string {
+func (s Storage) DefaultFormat() string {
 	return "string"
 }
 
-// GetChanges returns changes between the config and the fileStorage content
-func (s fileStorage) GetChanges(config []byte, format, key string) (changes, error) {
+// GetChanges returns changes between the config and the Storage content
+func (s Storage) GetChanges(config []byte, format, key string) (casper.Changes, error) {
 	data, err := ioutil.ReadFile(s.path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading file %v failed", s.path)
@@ -50,7 +56,7 @@ func (s fileStorage) GetChanges(config []byte, format, key string) (changes, err
 }
 
 // Diff returns the visual representation of the changes
-func (s fileStorage) Diff(cs changes, pretty bool) string {
+func (s Storage) Diff(cs casper.Changes, pretty bool) string {
 	if cs.Len() == 0 {
 		return ""
 	}
@@ -64,8 +70,8 @@ func (s fileStorage) Diff(cs changes, pretty bool) string {
 	return fmt.Sprintf("-%v\n+%v", string(c.old), string(c.new))
 }
 
-// Push changes the storage with the given changes
-func (s fileStorage) Push(cs changes) error {
+// Push changes to the storage
+func (s Storage) Push(cs casper.Changes) error {
 	c := cs.(fileChanges)
 
 	f, err := os.OpenFile(s.path, os.O_WRONLY, 0777)

@@ -1,4 +1,4 @@
-package main
+package consul
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ func TestNewConsulStorage(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			_, err := newConsulStorage(tc.addr)
+			_, err := New(tc.addr)
 			if tc.ok != (err == nil) {
 				if err != nil {
 					t.Fatal(err)
@@ -36,7 +36,7 @@ func TestNewConsulStorage(t *testing.T) {
 	}
 }
 
-type ConsulKVMock struct {
+type kvMock struct {
 	list    api.KVPairs
 	listErr error
 
@@ -44,21 +44,21 @@ type ConsulKVMock struct {
 	dels []string
 }
 
-func (kv *ConsulKVMock) List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryMeta, error) {
+func (kv *kvMock) List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryMeta, error) {
 	return kv.list, nil, kv.listErr
 }
 
-func (kv *ConsulKVMock) Put(p *api.KVPair, q *api.WriteOptions) (*api.WriteMeta, error) {
+func (kv *kvMock) Put(p *api.KVPair, q *api.WriteOptions) (*api.WriteMeta, error) {
 	kv.puts = append(kv.puts, p)
 	return nil, nil
 }
 
-func (kv *ConsulKVMock) Delete(key string, w *api.WriteOptions) (*api.WriteMeta, error) {
+func (kv *kvMock) Delete(key string, w *api.WriteOptions) (*api.WriteMeta, error) {
 	kv.dels = append(kv.dels, key)
 	return nil, nil
 }
 
-var ErrConsulKVMock = errors.New("ErrConsulKVMock")
+var ErrkvMock = errors.New("ErrkvMock")
 
 func TestConsulStorageString(t *testing.T) {
 	testCases := []struct {
@@ -79,15 +79,15 @@ func TestConsulStorageString(t *testing.T) {
 			api.KVPairs{
 				&api.KVPair{Key: "key1", Value: []byte("val1")},
 			},
-			ErrConsulKVMock,
+			ErrkvMock,
 			``,
-			ErrConsulKVMock,
+			ErrkvMock,
 		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &consulStorage{&ConsulKVMock{list: tc.list, listErr: tc.listErr}, []string{"jsonraw"}, defaultIgnoreVal}
+			s := &Storage{&kvMock{list: tc.list, listErr: tc.listErr}, []string{"jsonraw"}, ""}
 			str, err := s.String("jsonraw")
 			if err != tc.err {
 				t.Fatalf("Got %v; want %v", err, tc.err)
@@ -147,7 +147,7 @@ func TestConsulStoragePush(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &consulStorage{&ConsulKVMock{list: tc.list}, []string{"jsonraw	"}, defaultIgnoreVal}
+			s := &Storage{&kvMock{list: tc.list}, []string{"jsonraw	"}, "_ignore"}
 
 			cs, err := s.GetChanges([]byte(tc.config), "jsonraw", "")
 			if err != nil {
@@ -164,7 +164,7 @@ func TestConsulStoragePush(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			kv := s.kv.(*ConsulKVMock)
+			kv := s.kv.(*kvMock)
 			sort.Strings(kv.dels)
 			if strings.Join(kv.dels, ",") != strings.Join(tc.dels, ",") {
 				t.Errorf("Got `%v`; want `%v`", kv.dels, tc.dels)
@@ -219,7 +219,7 @@ func TestConsulStorageFormats(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &consulStorage{&ConsulKVMock{}, tc.formats, defaultIgnoreVal}
+			s := &Storage{&kvMock{}, tc.formats, ""}
 
 			if s.FormatIsValid(tc.fmt) != tc.valid {
 				t.Errorf("%v should have been valid:%v", tc.fmt, tc.valid)
@@ -361,7 +361,7 @@ func TestGetChanges(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			ch, err := getChanges(tc.pairs, []byte(tc.config), tc.format, tc.key, defaultIgnoreVal)
+			ch, err := getChanges(tc.pairs, []byte(tc.config), tc.format, tc.key, "")
 
 			if tc.ok != (err == nil) {
 				if err != nil {

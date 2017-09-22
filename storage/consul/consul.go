@@ -1,4 +1,4 @@
-package main
+package consul
 
 import (
 	"encoding/json"
@@ -6,17 +6,16 @@ import (
 	"net/url"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/miracl/casper"
 	"github.com/miracl/casper/consul"
 	"github.com/miracl/casper/diff"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )
 
-const defaultIgnoreVal = "_ignore"
-
-// ConsulKV is interface that Consul KV type implements.
+// kv is interface that Consul KV type implements.
 // Defined and used mainly for testing.
-type ConsulKV interface {
+type kv interface {
 	List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryMeta, error)
 	Put(p *api.KVPair, q *api.WriteOptions) (*api.WriteMeta, error)
 	Delete(key string, w *api.WriteOptions) (*api.WriteMeta, error)
@@ -24,18 +23,19 @@ type ConsulKV interface {
 
 var consulFormats = []string{"json", "yaml", "jsonraw"}
 
-type consulStorage struct {
-	kv ConsulKV
+// Storage is an implementation of the storage interface that stores in Consul KV.
+type Storage struct {
+	kv kv
 
 	formats   []string
 	ignoreVal string
 }
 
-func newConsulStorage(addr string) (storage, error) {
+// New returns new consul storage
+func New(addr string) (casper.Storage, error) {
 	cfg := &api.Config{}
 
-	ignoreVal := defaultIgnoreVal
-
+	ignore := ""
 	if addr != "" {
 		addr, err := url.Parse(addr)
 		if err != nil {
@@ -45,10 +45,7 @@ func newConsulStorage(addr string) (storage, error) {
 		cfg.Scheme = addr.Scheme
 		cfg.Token = addr.Query().Get("token")
 
-		ignore := addr.Query().Get("ignore")
-		if ignore != "" {
-			ignoreVal = ignore
-		}
+		ignore = addr.Query().Get("ignore")
 	}
 
 	client, err := api.NewClient(cfg)
@@ -56,10 +53,10 @@ func newConsulStorage(addr string) (storage, error) {
 		return nil, errors.Wrap(err, "creating Consul client failed")
 	}
 
-	return &consulStorage{client.KV(), consulFormats, ignoreVal}, nil
+	return &Storage{client.KV(), consulFormats, ignore}, nil
 }
 
-func (s consulStorage) String(format string) (string, error) {
+func (s Storage) String(format string) (string, error) {
 	pairs, _, err := s.kv.List("", nil)
 	if err != nil {
 		return "", err
@@ -67,7 +64,8 @@ func (s consulStorage) String(format string) (string, error) {
 	return kvPairsToString(pairs, format), nil
 }
 
-func (s consulStorage) FormatIsValid(format string) bool {
+// FormatIsValid returns if the format is valid for this storage
+func (s Storage) FormatIsValid(format string) bool {
 	for _, f := range s.formats {
 		if format == f {
 			return true
@@ -76,11 +74,13 @@ func (s consulStorage) FormatIsValid(format string) bool {
 	return false
 }
 
-func (s consulStorage) DefaultFormat() string {
+// DefaultFormat returns the default format
+func (s Storage) DefaultFormat() string {
 	return s.formats[0]
 }
 
-func (s consulStorage) GetChanges(config []byte, format, key string) (changes, error) {
+// GetChanges returns changes between the config and the Storage content
+func (s Storage) GetChanges(config []byte, format, key string) (casper.Changes, error) {
 	pairs, _, err := s.kv.List("", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting key/value pairs from Consul failed")
@@ -89,11 +89,13 @@ func (s consulStorage) GetChanges(config []byte, format, key string) (changes, e
 	return getChanges(pairs, config, format, key, s.ignoreVal)
 }
 
-func (consulStorage) Diff(cs changes, pretty bool) string {
+// Diff returns the visual representation of the changes
+func (Storage) Diff(cs casper.Changes, pretty bool) string {
 	return diff.Diff(cs.(diff.KVChanges), pretty)
 }
 
-func (s consulStorage) Push(cs changes) error {
+// Push changes to the storage
+func (s Storage) Push(cs casper.Changes) error {
 	for _, ci := range cs.(diff.KVChanges) {
 		if err := s.push(ci); err != nil {
 			return err
@@ -102,7 +104,7 @@ func (s consulStorage) Push(cs changes) error {
 	return nil
 }
 
-func (s consulStorage) push(change interface{}) error {
+func (s Storage) push(change interface{}) error {
 	switch c := change.(type) {
 	case *diff.Add:
 		_, err := s.kv.Put(&api.KVPair{Key: c.Key(), Value: []byte(c.Val())}, nil)
@@ -135,7 +137,7 @@ func kvPairsToString(pairs api.KVPairs, format string) string {
 	return string(res)
 }
 
-func getChanges(pairs api.KVPairs, config []byte, format, key, ignoreVal string) (changes, error) {
+func getChanges(pairs api.KVPairs, config []byte, format, key, ignoreVal string) (casper.Changes, error) {
 	consulChanges, err := consul.GetChanges(pairs, config, format)
 	if err != nil {
 		return nil, err
