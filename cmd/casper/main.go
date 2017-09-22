@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	casper "github.com/miracl/casper"
+	"github.com/pkg/errors"
 	cli "gopkg.in/urfave/cli.v2"
 	"gopkg.in/urfave/cli.v2/altsrc"
 )
@@ -177,7 +178,7 @@ func fetchAction(c *cli.Context) error {
 		withSources(c.StringSlice("sources")),
 	)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "creating context failed")
 	}
 
 	if err := withStorage(ctx, c); err != nil {
@@ -199,7 +200,7 @@ func buildAction(c *cli.Context) error {
 		withSources(c.StringSlice("sources")),
 	)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "creating context failed")
 	}
 
 	out, err := casper.BuildConfig{
@@ -207,7 +208,7 @@ func buildAction(c *cli.Context) error {
 		Source:   ctx.source,
 	}.Build()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "building the source failed")
 	}
 	fmt.Print(string(out))
 	return nil
@@ -219,7 +220,7 @@ func diffAction(c *cli.Context) error {
 		withSources(c.StringSlice("sources")),
 	)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "creating context failed")
 	}
 
 	if err := withStorage(ctx, c); err != nil {
@@ -231,7 +232,7 @@ func diffAction(c *cli.Context) error {
 		Source:   ctx.source,
 	}.Build()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "building the source failed")
 	}
 
 	templateName := ctx.template.Name()
@@ -241,7 +242,7 @@ func diffAction(c *cli.Context) error {
 
 	changes, err := ctx.storage.GetChanges(out, format, c.String("key"))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "getting changes failed")
 	}
 
 	fmt.Println(strChanges(changes, c.String("key"), ctx.storage, !c.Bool("plain")))
@@ -254,7 +255,7 @@ func pushAction(c *cli.Context) error {
 		withSources(c.StringSlice("sources")),
 	)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "creating context failed")
 	}
 
 	if err := withStorage(ctx, c); err != nil {
@@ -266,7 +267,7 @@ func pushAction(c *cli.Context) error {
 		Source:   ctx.source,
 	}.Build()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "building the source failed")
 	}
 
 	templateName := ctx.template.Name()
@@ -276,7 +277,7 @@ func pushAction(c *cli.Context) error {
 
 	changes, err := ctx.storage.GetChanges(out, format, c.String("key"))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "getting changes failed")
 	}
 
 	fmt.Println(strChanges(changes, c.String("key"), ctx.storage, !c.Bool("plain")))
@@ -314,7 +315,7 @@ func withStorage(ctx *context, c *cli.Context) error {
 		ctx.withFileStorage(c.String("file-path"))
 	case "consul":
 		if err := ctx.withConsulStorage(c.String("consul-addr")); err != nil {
-			return err
+			return errors.Wrap(err, "setting Consul storage failed")
 		}
 	default:
 		return fmt.Errorf("invalid storage type %v", c.String("storage"))

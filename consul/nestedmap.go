@@ -8,7 +8,7 @@ var (
 	folderValKey = "_value"
 )
 
-// NestedMap is a map type for parsing consul key/values in nested structure
+// NestedMap is a map type for parsing Consul key/values in nested structure
 type NestedMap map[string]interface{}
 
 // Add value to NestedMap with nested key separated with keySep

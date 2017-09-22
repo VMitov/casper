@@ -8,14 +8,13 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/miracl/casper/consul"
 	"github.com/miracl/casper/diff"
+	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )
 
-const (
-	defaultIgnoreVal = "_ignore"
-)
+const defaultIgnoreVal = "_ignore"
 
-// ConsulKV is interface that consul KV type implements.
+// ConsulKV is interface that Consul KV type implements.
 // Defined and used mainly for testing.
 type ConsulKV interface {
 	List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryMeta, error)
@@ -32,14 +31,6 @@ type consulStorage struct {
 	ignoreVal string
 }
 
-type changeError struct {
-	c interface{}
-}
-
-func (e changeError) Error() string {
-	return fmt.Sprintf("Consul: Invalid change type: %T", e.c)
-}
-
 func newConsulStorage(addr string) (storage, error) {
 	cfg := &api.Config{}
 
@@ -48,7 +39,7 @@ func newConsulStorage(addr string) (storage, error) {
 	if addr != "" {
 		addr, err := url.Parse(addr)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "parsing Consul address %v failed", addr)
 		}
 		cfg.Address = addr.Host
 		cfg.Scheme = addr.Scheme
@@ -62,7 +53,7 @@ func newConsulStorage(addr string) (storage, error) {
 
 	client, err := api.NewClient(cfg)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "creating Consul client failed")
 	}
 
 	return &consulStorage{client.KV(), consulFormats, ignoreVal}, nil
@@ -92,7 +83,7 @@ func (s consulStorage) DefaultFormat() string {
 func (s consulStorage) GetChanges(config []byte, format, key string) (changes, error) {
 	pairs, _, err := s.kv.List("", nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "getting key/value pairs from Consul failed")
 	}
 
 	return getChanges(pairs, config, format, key, s.ignoreVal)
@@ -124,7 +115,7 @@ func (s consulStorage) push(change interface{}) error {
 		return err
 	}
 
-	return changeError{change}
+	return fmt.Errorf("invalid change type: %T", change)
 }
 
 func kvPairsToString(pairs api.KVPairs, format string) string {

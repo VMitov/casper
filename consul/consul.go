@@ -1,4 +1,4 @@
-// Package consul contains helper functions for consul storage
+// Package consul contains helper functions for Consul storage
 package consul
 
 import (
@@ -12,17 +12,17 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// Action represent possible consul changes
+// Action represent possible Consul changes
 type Action int
 
-// Actions for consul storage
+// Actions for Consul storage
 const (
 	ConsulAdd Action = iota
 	ConsulUpdate
 	ConsulRemove
 )
 
-// Change represents single consul change
+// Change represents single Consul change
 type Change struct {
 	Action Action
 	Key    string

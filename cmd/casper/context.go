@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 
 	"github.com/miracl/casper/source"
+	"github.com/pkg/errors"
 )
 
 type context struct {
@@ -63,7 +65,7 @@ func (c *context) withSources(sources []string) error {
 	for i, s := range sources {
 		u, err := url.Parse(s)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "parsing source %v failed", s)
 		}
 
 		if u.Scheme == "" {
@@ -76,7 +78,7 @@ func (c *context) withSources(sources []string) error {
 
 		getSourcer, ok := sourceTypes[u.Scheme]
 		if !ok {
-			return errSourceFormat
+			return fmt.Errorf("invalid source format %v", u.Scheme)
 		}
 
 		sourceList[i], err = getSourcer(u)
@@ -99,7 +101,7 @@ func withSources(sources []string) func(*context) error {
 func (c *context) withTemplate(path string) error {
 	var err error
 	c.template, err = os.Open(path)
-	return err
+	return errors.Wrapf(err, "getting template %v failed", path)
 }
 
 func withTemplate(path string) func(*context) error {
@@ -122,7 +124,7 @@ func withFileStorage(path string) func(*context) error {
 func (c *context) withConsulStorage(addr string) error {
 	var err error
 	c.storage, err = newConsulStorage(addr)
-	return err
+	return errors.Wrap(err, "creating Consul storage failed")
 }
 
 func withConsulStorage(addr string) func(*context) error {

@@ -7,14 +7,16 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/pkg/errors"
 	cli "gopkg.in/urfave/cli.v2"
 	"gopkg.in/urfave/cli.v2/altsrc"
 )
 
 func getConfigDir(context *cli.Context) (string, error) {
-	inputSourcePath, err := filepath.Abs(context.String(configFlag))
+	configPath := context.String(configFlag)
+	inputSourcePath, err := filepath.Abs(configPath)
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "resolving absolute path for config %v failed", configPath)
 	}
 
 	return filepath.Dir(inputSourcePath), nil
@@ -166,13 +168,13 @@ func fixPathsForSources(dir string, value []string) ([]string, error) {
 func fixPathsForSource(dir, value string) (string, error) {
 	u, err := url.Parse(value)
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "parsing source %v failed", value)
 	}
 
 	if u.Scheme == "file" {
 		fixed, err := fixPathsForFileSource(dir, u)
 		if err != nil {
-			return "", err
+			return "", errors.Wrapf(err, "converting file source path %v to absolute failed", u)
 		}
 
 		return fixed, nil

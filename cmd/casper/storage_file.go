@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
@@ -19,7 +20,7 @@ type fileStorage struct {
 func (s fileStorage) String(format string) (string, error) {
 	data, err := ioutil.ReadFile(s.path)
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "reading file %v failed", s.path)
 	}
 
 	return string(data), nil
@@ -39,7 +40,7 @@ func (s fileStorage) DefaultFormat() string {
 func (s fileStorage) GetChanges(config []byte, format, key string) (changes, error) {
 	data, err := ioutil.ReadFile(s.path)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "reading file %v failed", s.path)
 	}
 
 	if bytes.Compare(data, config) == 0 {
@@ -69,14 +70,14 @@ func (s fileStorage) Push(cs changes) error {
 
 	f, err := os.OpenFile(s.path, os.O_WRONLY, 0777)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "opening file %v failed", s.path)
 	}
 	defer f.Close()
 
 	w := bufio.NewWriter(f)
 
 	if _, err := w.Write(c.new); err != nil {
-		return err
+		return errors.Wrapf(err, "writing to file %v failed", s.path)
 	}
 	w.Flush()
 	return nil
