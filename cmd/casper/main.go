@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	casper "github.com/miracl/casper"
+	"github.com/miracl/casper"
 	"github.com/pkg/errors"
 	cli "gopkg.in/urfave/cli.v2"
 	"gopkg.in/urfave/cli.v2/altsrc"

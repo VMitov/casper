@@ -1,8 +1,10 @@
 package main
 
-import "testing"
-import "fmt"
-import "net/url"
+import (
+	"fmt"
+	"net/url"
+	"testing"
+)
 
 func TestFixPathsForFileSource(t *testing.T) {
 	dir := "/config"
