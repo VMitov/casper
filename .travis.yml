@@ -10,15 +10,15 @@ jobs:
         - go get github.com/golang/lint/golint
         - go get github.com/mattn/goveralls
       before_script:
-        - go vet $(go list ./... | grep -v vendor)
+        - go vet ./...
         - test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"
-        - test -z "$(go list ./... 2>&1 | grep -v /vendor/ | xargs -L1 golint | tee /dev/stderr)"
+        - golint -set_exit_status $(go list ./...)
       script: goveralls -service=travis-ci
 
     - &test
       stage: test alternative environments
       install: skip
-      script: go test -race $(go list ./... | grep -v /vendor/)
+      script: go test -race ./...
       go: 1.x
       os: linux
     - <<: *test
