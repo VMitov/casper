@@ -102,7 +102,7 @@ func TestNestedMap(t *testing.T) {
 			},
 		},
 
-		// Test that the order doesn't matter
+		// test that the order doesn't matter
 		{
 			[]KV{
 				{"key1", "val1"},
@@ -136,7 +136,7 @@ func TestNestedMap(t *testing.T) {
 			},
 		},
 		{
-			// Folders first, then values in order
+			// folders first, then values in order
 			[]KV{
 				{"key2/", "null"},
 				{"key3/", "null"},

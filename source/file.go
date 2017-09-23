@@ -10,7 +10,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// NewFileSource creates a source of type file
+// NewFileSource creates new file source.
 func NewFileSource(r io.Reader, format string) (*Source, error) {
 	if r == nil {
 		return &Source{}, nil
