@@ -9,14 +9,6 @@ import (
 	"testing"
 )
 
-var errSuccFail = errors.New("Successful fail")
-
-type FailingReader struct{}
-
-func (FailingReader) Read(p []byte) (n int, err error) {
-	return 0, errSuccFail
-}
-
 func TestFileSourcer(t *testing.T) {
 	testCases := []struct {
 		file   io.Reader
@@ -90,4 +82,10 @@ func TestFileSourcer(t *testing.T) {
 			}
 		})
 	}
+}
+
+type FailingReader struct{}
+
+func (FailingReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("successful fail")
 }

@@ -51,7 +51,7 @@ func (c *context) withSources(sources []string) error {
 		"file":       getFileSource,
 	}
 
-	sourceList := make([]source.ValuesSourcer, len(sources))
+	sourceList := make([]source.Getter, len(sources))
 	for i, s := range sources {
 		u, err := url.Parse(s)
 		if err != nil {

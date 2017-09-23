@@ -1,19 +1,15 @@
 package source
 
-type dupKeyError string
-
-func (e dupKeyError) Error() string {
-	return "Duplicated key: " + string(e)
-}
+import "fmt"
 
 // NewMultiSourcer create source that is a collection of value sources
-func NewMultiSourcer(vss ...ValuesSourcer) (*Source, error) {
+func NewMultiSourcer(vss ...Getter) (*Source, error) {
 	vars := map[string]interface{}{}
 
 	for _, s := range vss {
 		for k, v := range s.Get() {
 			if _, ok := vars[k]; ok {
-				return nil, dupKeyError(k)
+				return nil, fmt.Errorf("duplicated key '%v'", k)
 			}
 			vars[k] = v
 		}
