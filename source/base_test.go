@@ -22,7 +22,6 @@ func TestSourcer(t *testing.T) {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
 			s := NewSource(tc.source)
 
-			// Compare
 			if !reflect.DeepEqual(s.Get(), tc.source) {
 				t.Errorf("Got %v; want %v", s.Get(), tc.source)
 			}
