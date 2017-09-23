@@ -40,9 +40,9 @@ func (s Storage) GetChanges(config []byte, format, key string) (casper.Changes, 
 	}
 
 	if bytes.Compare(data, config) == 0 {
-		return fileChanges{}, nil
+		return &changes{}, nil
 	}
-	return fileChanges{data, config}, nil
+	return &changes{data, config}, nil
 }
 
 // Diff returns the visual representation of the changes
@@ -50,7 +50,7 @@ func (s Storage) Diff(cs casper.Changes, pretty bool) string {
 	if cs.Len() == 0 {
 		return ""
 	}
-	c := cs.(fileChanges)
+	c := cs.(*changes)
 
 	if pretty {
 		dmp := diffmatchpatch.New()
@@ -62,7 +62,7 @@ func (s Storage) Diff(cs casper.Changes, pretty bool) string {
 
 // Push changes to the storage
 func (s Storage) Push(cs casper.Changes) error {
-	c := cs.(fileChanges)
+	c := cs.(*changes)
 
 	f, err := os.OpenFile(s.path, os.O_WRONLY, 0777)
 	if err != nil {
@@ -79,12 +79,14 @@ func (s Storage) Push(cs casper.Changes) error {
 	return nil
 }
 
-type fileChanges struct {
+// changes is a representation of file changes
+type changes struct {
 	old []byte
 	new []byte
 }
 
-func (c fileChanges) Len() int {
+// Len represents the quantity of file changes
+func (c changes) Len() int {
 	if len(c.old) == 0 && len(c.new) == 0 {
 		return 0
 	}

@@ -332,7 +332,7 @@ func TestGetChanges(t *testing.T) {
 				}
 			}
 
-			if tc.ok && diff.Diff(ch.(diff.KVChanges), false) != diff.Diff(tc.ch, false) {
+			if tc.ok && diff.Diff(ch, false) != diff.Diff(tc.ch, false) {
 				t.Errorf("Got `%v`; want `%v`", ch, tc.ch)
 			}
 		})

@@ -28,7 +28,7 @@ type Storage struct {
 }
 
 // New returns new consul storage
-func New(addr string) (casper.Storage, error) {
+func New(addr string) (*Storage, error) {
 	cfg := &api.Config{}
 
 	ignore := ""
@@ -118,7 +118,7 @@ func kvPairsToString(pairs api.KVPairs, format string) string {
 	return string(res)
 }
 
-func getChanges(pairs api.KVPairs, config []byte, format, key, ignoreVal string) (casper.Changes, error) {
+func getChanges(pairs api.KVPairs, config []byte, format, key, ignoreVal string) (diff.KVChanges, error) {
 	consulChanges, err := consul.GetChanges(pairs, config, format)
 	if err != nil {
 		return nil, err
