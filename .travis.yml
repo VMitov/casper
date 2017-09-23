@@ -32,11 +32,11 @@ jobs:
       install: skip
       script: skip
       before_deploy:
-        - GOOS=linux go build -o releases/casper
+        - GOOS=linux go build -o releases/casper  -ldflags "-s -w -X main.version=$TRAVIS_TAG" ./cmd/casper
         - tar -czf releases/casper.linux-amd64.tar.gz -C releases casper
-        - GOOS=darwin go build -o releases/casper
+        - GOOS=darwin go build -o releases/casper -ldflags "-s -w -X main.version=$TRAVIS_TAG" ./cmd/casper
         - tar -czf releases/casper.darwin-amd64.tar.gz -C releases casper
-        - GOOS=windows go build -o releases/casper.exe
+        - GOOS=windows go build -o releases/casper.exe -ldflags "-s -w -X main.version=$TRAVIS_TAG" ./cmd/casper
         - tar -czf releases/casper.windows-amd64.tar.gz -C releases casper.exe
         - cd releases
         - sha256sum *.tar.gz > sha256sum.txt
