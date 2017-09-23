@@ -8,12 +8,12 @@ import (
 
 func TestMultiSourcer(t *testing.T) {
 	testCases := []struct {
-		s  []ValuesSourcer
+		s  []Getter
 		r  map[string]interface{}
 		ok bool
 	}{
 		{
-			[]ValuesSourcer{
+			[]Getter{
 				NewSource(map[string]interface{}{
 					"key1": "var1",
 					"key2": "var2",
@@ -26,7 +26,7 @@ func TestMultiSourcer(t *testing.T) {
 			true,
 		},
 		{
-			[]ValuesSourcer{
+			[]Getter{
 				NewSource(map[string]interface{}{
 					"key1": "var1",
 					"key2": "var2",
@@ -47,7 +47,7 @@ func TestMultiSourcer(t *testing.T) {
 			true,
 		},
 		{
-			[]ValuesSourcer{
+			[]Getter{
 				NewSource(map[string]interface{}{
 					"key1": "var1",
 					"key2": "var2",

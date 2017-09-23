@@ -11,7 +11,7 @@ import (
 func TestBuild(t *testing.T) {
 	testCases := []struct {
 		tmpl   string
-		source source.ValuesSourcer
+		source source.Getter
 		res    string
 	}{
 		{
