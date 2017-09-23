@@ -18,19 +18,19 @@ var funcMap = template.FuncMap{
 
 // BuildConfig represent a configuration
 type BuildConfig struct {
-	Tmlp   io.Reader
 	Source source.ValuesSourcer
+	Template io.Reader
 }
 
 // Build creates the config based on the template and the environment files
 func (c BuildConfig) Build() ([]byte, error) {
 	// Compile the template for the config
-	cfgTmplBody, err := ioutil.ReadAll(c.Tmlp)
+	cfgTmplBody, err := ioutil.ReadAll(c.Template)
 	if err != nil {
 		return nil, errors.Wrap(err, "reading template failed")
 	}
 
-	cfgTmlp, err := template.New("config").
+	cfgTmpl, err := template.New("config").
 		Funcs(funcMap).
 		Parse(string(cfgTmplBody))
 	if err != nil {
@@ -38,7 +38,7 @@ func (c BuildConfig) Build() ([]byte, error) {
 	}
 
 	var cfg bytes.Buffer
-	if err := cfgTmlp.Execute(&cfg, c.Source.Get()); err != nil {
+	if err := cfgTmpl.Execute(&cfg, c.Source.Get()); err != nil {
 		return nil, errors.Wrap(err, "executing template failed")
 	}
 
