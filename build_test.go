@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/miracl/casper/lib/source"
+	"github.com/miracl/casper/source"
 )
 
 func TestBuild(t *testing.T) {

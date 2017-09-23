@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"text/template"
 
-	"github.com/miracl/casper/lib/source"
+	"github.com/miracl/casper/source"
 )
 
 var funcMap = template.FuncMap{

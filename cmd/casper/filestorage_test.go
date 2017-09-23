@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/miracl/casper/lib/caspertest"
+	"github.com/miracl/casper/caspertest"
 )
 
 func TestFileStorageString(t *testing.T) {
