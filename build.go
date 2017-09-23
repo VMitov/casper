@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/miracl/casper/source"
+	"github.com/pkg/errors"
 )
 
 var funcMap = template.FuncMap{
@@ -26,25 +27,25 @@ func (c BuildConfig) Build() ([]byte, error) {
 	// Compile the template for the config
 	cfgTmplBody, err := ioutil.ReadAll(c.Tmlp)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "reading template failed")
 	}
 
 	cfgTmlp, err := template.New("config").
 		Funcs(funcMap).
 		Parse(string(cfgTmplBody))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "template error")
 	}
 
 	var cfg bytes.Buffer
 	if err := cfgTmlp.Execute(&cfg, c.Source.Get()); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "executing template failed")
 	}
 
 	// Convert to string
 	cfgStr, err := ioutil.ReadAll(&cfg)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "serializing template to string failed")
 	}
 
 	return cfgStr, nil

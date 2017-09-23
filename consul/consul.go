@@ -3,12 +3,12 @@ package consul
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -79,21 +79,19 @@ func GetChanges(pairs api.KVPairs, config []byte, format string) ([]Change, erro
 	return changes, nil
 }
 
-var errInvalidType = errors.New("Consul: unsupported template format")
-
 func stringToMap(config []byte, format string) (map[string]string, error) {
-	var err error
 	j := &map[string]interface{}{}
 	switch format {
 	case "json", "jsonraw":
-		err = json.Unmarshal(config, j)
+		if err := json.Unmarshal(config, j); err != nil {
+			return nil, errors.Wrap(err, "parsing json failed")
+		}
 	case "yaml":
-		err = yaml.Unmarshal(config, j)
+		if err := yaml.Unmarshal(config, j); err != nil {
+			return nil, errors.Wrap(err, "parsing yaml failed")
+		}
 	default:
-		err = errInvalidType
-	}
-	if err != nil {
-		return nil, err
+		return nil, errors.New("Consul: unsupported template format")
 	}
 
 	kv := map[string]string{}
@@ -101,23 +99,6 @@ func stringToMap(config []byte, format string) (map[string]string, error) {
 		return nil, err
 	}
 	return kv, nil
-}
-
-type keyError struct {
-	k interface{}
-}
-
-func (e keyError) Error() string {
-	return fmt.Sprintf("Key %#v not convertible to string", e.k)
-}
-
-type valError struct {
-	k string
-	v interface{}
-}
-
-func (e valError) Error() string {
-	return fmt.Sprintf("Type of the value of key %v:%#v not supported", e.k, e.v)
 }
 
 func flatten(pairs map[string]interface{}, prefixes []string, kv *map[string]string) error {
@@ -147,7 +128,7 @@ func flatten(pairs map[string]interface{}, prefixes []string, kv *map[string]str
 			for ki, vi := range val {
 				key, ok := ki.(string)
 				if !ok {
-					return keyError{ki}
+					return fmt.Errorf("key %#v not convertible to string", ki)
 				}
 				pairs[key] = vi
 			}
@@ -156,7 +137,7 @@ func flatten(pairs map[string]interface{}, prefixes []string, kv *map[string]str
 			}
 		default:
 			key := strings.Join(append(prefixes, k), ".")
-			return valError{key, v}
+			return fmt.Errorf("type of the value of key %v:%#v not supported", key, v)
 		}
 	}
 	return nil
