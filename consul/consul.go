@@ -82,11 +82,11 @@ func GetChanges(pairs api.KVPairs, config []byte, format string) ([]Change, erro
 func stringToMap(config []byte, format string) (map[string]string, error) {
 	j := &map[string]interface{}{}
 	switch format {
-	case "json", "jsonraw":
+	case "json":
 		if err := json.Unmarshal(config, j); err != nil {
 			return nil, errors.Wrap(err, "parsing json failed")
 		}
-	case "yaml":
+	case "yaml", "yml":
 		if err := yaml.Unmarshal(config, j); err != nil {
 			return nil, errors.Wrap(err, "parsing yaml failed")
 		}
