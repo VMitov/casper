@@ -3,7 +3,7 @@ package source
 import "fmt"
 
 // NewMultiSourcer create source that is a collection of value sources
-func NewMultiSourcer(vss ...ValuesSourcer) (*Source, error) {
+func NewMultiSourcer(vss ...Getter) (*Source, error) {
 	vars := map[string]interface{}{}
 
 	for _, s := range vss {

@@ -1,7 +1,7 @@
 package source
 
-// ValuesSourcer is interface for sources
-type ValuesSourcer interface {
+// Getter is interface for sources.
+type Getter interface {
 	Get() map[string]interface{}
 }
 

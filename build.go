@@ -18,8 +18,8 @@ var funcMap = template.FuncMap{
 
 // BuildConfig represent a configuration
 type BuildConfig struct {
-	Source source.ValuesSourcer
 	Template io.Reader
+	Source   source.Getter
 }
 
 // Build creates the config based on the template and the environment files
