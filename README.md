@@ -11,9 +11,13 @@ Casper is a simple tool for managing configurations as code where the structure 
 
 ## Installation
 
+### From source 
+
 ```
-go get -u github.com/miracl/casper
+go get -u github.com/miracl/casper/cmd/casper
 ```
+
+### From [GitHub releases](https://github.com/miracl/casper/releases)
 
 ## Example
 ```
@@ -22,21 +26,35 @@ casper build
 ```
 * [template.yaml](/example/template.yaml)
 * [config.yaml](/example/config.yaml)
+* [source.yaml](/example/source.yaml)
 * [expected output](/example/output.yaml)
 
-## config.yaml
+## Usage
+
+All configurations can be given on the command line, with file or with environment variables. Check `casper -h` for full list.
 
 * **template** - The template file is a golang template. The end product of the template file and the values should be of a format applicable for the configuration storage (e.g: json, yaml for key/value stores)
-* **format** - Format of the template. It depends on the storage configures.
-* **sources** - Sources are the thing containing the keys for the template. Sources is a list of sources defined with `type` and keys that are specific to each particular source. Currently there are 2 available:
-	* config - key/value pairs directly in the configuration file
-		* vals - list of key/value pairs
-	* file - key/value pairs in file
-		* format - format of the file (json, yaml)
-		* file - path to file containing key/value pairs
-* **storage** - Storage is the system that Casper menages. Storage will have two keys - `type` and `config` where `config` contains all the configurations for the storage specified by `type`. Currently there are 2 available:
-	* consul - Consul (Formats: json, yaml)
-		* addr - address of the consul instance e.g: `localhost:8500`
-		* ignore - keys given the value of this setting in configuration will be ignored by Casper. The default such value is "_ignore"
-	* file - File (Formats: string)
-		* path - path to the file
+* **sources** - Sources are the thing containing the keys for the template. Sources is a list. Currently there are 2 available:
+	* Config source is a list of key/value pairs directly in the configuration file. Check ([config.yaml](/example/config.yaml)) for examples. 
+		```
+		sources:
+		- key1=val1
+		- key2=val2
+		```
+	* File source defines key/value pairs in a file. Currently supported formats are `json` and `yaml`.
+		```
+		sources:
+		- file://source.yaml
+		```
+* **storage** - Storage is the system that Casper menages. Currently there are 2 available:
+	* Consul.
+		```
+		storage: consul
+		consul-addr: http://172.17.0.1:8500/?token=acl_token&ignore=_ignore
+		```
+		* ignore - keys given the value of this setting in configuration will be ignored by Casper. The default such value is `_ignore`
+	* File
+		```
+		storage: file
+		file-path: output.yaml
+		```
