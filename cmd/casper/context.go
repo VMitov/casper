@@ -32,7 +32,7 @@ func newContext(path string, opts ...func(*context) error) (*context, error) {
 	return config, nil
 }
 
-// withPath sets the config file if it is not in the current directory.
+// Sets the config file if it is not in the current directory.
 // All files should be relative to this path.
 func (c *context) withPath(path string) {
 	c.path = path
@@ -59,7 +59,7 @@ func (c *context) withSources(sources []string) error {
 		}
 
 		if u.Scheme == "" {
-			// Default to config
+			// default to config
 			u = &url.URL{
 				Scheme:   configScheme,
 				RawQuery: s,

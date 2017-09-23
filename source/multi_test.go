@@ -72,7 +72,6 @@ func TestMultiSourcer(t *testing.T) {
 				}
 			}
 
-			// Compare
 			if tc.ok && !reflect.DeepEqual(s.Get(), tc.r) {
 				t.Errorf("Got %#v; want %#v", s.Get(), tc.r)
 			}

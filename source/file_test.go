@@ -76,7 +76,6 @@ func TestFileSourcer(t *testing.T) {
 				}
 			}
 
-			// Compare
 			if tc.ok && !reflect.DeepEqual(s.Get(), tc.parsed) {
 				t.Errorf("Got %v; want %v", s.Get(), tc.parsed)
 			}

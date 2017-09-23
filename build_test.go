@@ -40,8 +40,7 @@ func TestBuild(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-
-			// Build
+			// build
 			config, err := BuildConfig{
 				Template: bytes.NewBufferString(tc.tmpl),
 				Source:   tc.source,
@@ -50,7 +49,7 @@ func TestBuild(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Compare
+			// compare
 			if string(config) != tc.res {
 				t.Errorf("Got %v; want %v", string(config), tc.res)
 			}

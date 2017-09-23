@@ -153,7 +153,7 @@ func main() {
 		},
 	}
 
-	// inputSource returns empty altsrc.MapInputSource if config doesn't exists.
+	// returns empty altsrc.MapInputSource if config doesn't exists.
 	inputSource := func(context *cli.Context) (altsrc.InputSourceContext, error) {
 		config := context.String(configFlag)
 		_, err := os.Open(config)

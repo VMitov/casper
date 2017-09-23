@@ -27,7 +27,7 @@ type Storage struct {
 	ignoreVal string
 }
 
-// New returns new consul storage
+// New returns new consul storage.
 func New(addr string) (*Storage, error) {
 	cfg := &api.Config{}
 
@@ -60,7 +60,7 @@ func (s Storage) String(format string) (string, error) {
 	return kvPairsToString(pairs, format), nil
 }
 
-// GetChanges returns changes between the config and the Storage content
+// GetChanges returns changes between the config and the Storage content.
 func (s Storage) GetChanges(config []byte, format, key string) (casper.Changes, error) {
 	pairs, _, err := s.kv.List("", nil)
 	if err != nil {
@@ -70,12 +70,12 @@ func (s Storage) GetChanges(config []byte, format, key string) (casper.Changes, 
 	return getChanges(pairs, config, format, key, s.ignoreVal)
 }
 
-// Diff returns the visual representation of the changes
+// Diff returns the visual representation of the changes.
 func (Storage) Diff(cs casper.Changes, pretty bool) string {
 	return diff.Diff(cs.(diff.KVChanges), pretty)
 }
 
-// Push changes to the storage
+// Push changes to the storage.
 func (s Storage) Push(cs casper.Changes) error {
 	for _, ci := range cs.(diff.KVChanges) {
 		if err := s.push(ci); err != nil {
@@ -126,7 +126,7 @@ func getChanges(pairs api.KVPairs, config []byte, format, key, ignoreVal string)
 
 	kvChanges := diff.KVChanges{}
 	for _, c := range consulChanges {
-		// Skip ignored pairs
+		// skip ignored pairs
 		if ignoreVal != "" && c.NewVal == ignoreVal {
 			continue
 		}

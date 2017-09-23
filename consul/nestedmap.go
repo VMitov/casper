@@ -1,6 +1,5 @@
 package consul
 
-// Consul nested key separator
 import "strings"
 
 var (
@@ -8,10 +7,10 @@ var (
 	folderValKey = "_value"
 )
 
-// NestedMap is a map type for parsing Consul key/values in nested structure
+// NestedMap is a map type for parsing Consul key/values in nested structure.
 type NestedMap map[string]interface{}
 
-// Add value to NestedMap with nested key separated with keySep
+// Add value to NestedMap with nested key separated with keySep.
 func (j NestedMap) Add(path, value string) {
 	isFolder := strings.HasSuffix(path, keySep)
 	path = strings.TrimRight(path, keySep)
@@ -23,15 +22,15 @@ func (j NestedMap) add(path, value string, isFolder bool) {
 	keyAndPath := strings.SplitN(path, keySep, 2)
 	key := keyAndPath[0]
 
-	// Recursively add the key if it is not leaf node
+	// recursively add the key if it is not leaf node
 	if len(keyAndPath) > 1 {
 		j.addPath(key, keyAndPath[1], value, isFolder)
 		return
 	}
 
-	// Key is leaf node - add the value to the map
+	// key is leaf node - add the value to the map
 
-	// Check if key exists
+	// check if key exists
 	v, ok := j[key]
 	if ok {
 		switch nv := v.(type) {
@@ -48,11 +47,11 @@ func (j NestedMap) add(path, value string, isFolder bool) {
 	j[key] = value
 }
 
-// Add to key value with nested path
+// Add to key value with nested path.
 func (j NestedMap) addPath(key, path, value string, isFolder bool) {
 	var n NestedMap
 
-	// Check if key exists
+	// check if key exists
 	v, ok := j[key]
 	if ok {
 		switch nv := v.(type) {

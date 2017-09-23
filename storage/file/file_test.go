@@ -128,7 +128,7 @@ func TestFileStoragePush(t *testing.T) {
 	}
 }
 
-// prepareTmpFile create a file with the given content
+// prepareTmpFile create a file with the given content.
 func prepareTmpFile(name string, data []byte) (*os.File, error) {
 	f, err := os.Create(name)
 	if err != nil {

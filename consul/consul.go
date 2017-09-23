@@ -1,4 +1,4 @@
-// Package consul contains helper functions for Consul storage
+// Package consul contains helper functions for Consul storage.
 package consul
 
 import (
@@ -12,17 +12,17 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// Action represent possible Consul changes
+// Action represent possible Consul changes.
 type Action int
 
-// Actions for Consul storage
+// Actions for Consul storage.
 const (
 	ConsulAdd Action = iota
 	ConsulUpdate
 	ConsulRemove
 )
 
-// Change represents single Consul change
+// Change represents single Consul change.
 type Change struct {
 	Action Action
 	Key    string
@@ -30,7 +30,7 @@ type Change struct {
 	NewVal string
 }
 
-// KVPairsToMap creates NestedMap from Consul KVPairs
+// KVPairsToMap creates NestedMap from Consul KVPairs.
 func KVPairsToMap(pairs api.KVPairs) NestedMap {
 	j := NestedMap{}
 	for _, p := range pairs {
@@ -39,7 +39,7 @@ func KVPairsToMap(pairs api.KVPairs) NestedMap {
 	return j
 }
 
-// GetChanges creates collection of changes from Consul KVPairs
+// GetChanges creates collection of changes from Consul KVPairs.
 func GetChanges(pairs api.KVPairs, config []byte, format string) ([]Change, error) {
 	kv, err := stringToMap(config, format)
 	if err != nil {
@@ -48,19 +48,19 @@ func GetChanges(pairs api.KVPairs, config []byte, format string) ([]Change, erro
 
 	changes := []Change{}
 
-	// Index current config and collect removals
+	// index current config and collect removals
 	curKV := map[string]string{}
 	for _, p := range pairs {
 		curKV[p.Key] = string(p.Value)
 
-		// Check for removal
+		// check for removal
 		if _, ok := kv[p.Key]; !ok {
 			changes = append(changes, Change{ConsulRemove, p.Key, string(p.Value), ""})
 		}
 
 	}
 
-	// Collect additions
+	// collect additions
 	for k, v := range kv {
 		curVal, ok := curKV[k]
 		if !ok {

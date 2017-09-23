@@ -2,7 +2,7 @@ package source
 
 import "fmt"
 
-// NewMultiSourcer create source that is a collection of value sources
+// NewMultiSourcer create source that is a collection of value sources.
 func NewMultiSourcer(vss ...Getter) (*Source, error) {
 	vars := map[string]interface{}{}
 

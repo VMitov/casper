@@ -47,44 +47,44 @@ func TestExample(t *testing.T) {
 	}{
 		{cmd: "casper fetch", out: outputFile + "\n", pwd: "../../example"},
 
-		// Without config file
+		// without config file
 		{cmd: "casper build -t ../../example/template.yaml -s placeholder1=val1 -s placeholder2=val2", out: outputFile},
 
-		// With overwritten placeholders so it there are differences
+		// with overwritten placeholders so it there are differences
 		{cmd: "casper diff -s placeholder1=val1a -s placeholder2=val2a --plain", out: changes, pwd: "../../example"},
 		{cmd: "casper push -s placeholder1=val1a -s placeholder2=val2a --plain --force", out: changes + applyingChanges, pwd: "../../example"},
 		{cmd: "casper push -s placeholder1=val1a -s placeholder2=val2a --plain", out: changes + prompt + canceled + "\n", pwd: "../../example"},
 
 		//
-		// Tests for correct relative path resolving
+		// Tests for correct relative path resolving.
 		//
 
 		// Build tests
 
-		// From the same directory where the config is
+		// from the same directory where the config is
 		{cmd: "casper build", out: outputFile, pwd: "../../example"},
 		{cmd: "casper -c ./config.yaml build", out: outputFile, pwd: "../../example"},
 		{cmd: "casper -c ../example/config.yaml build -t ../example/template.yaml", out: outputFile, pwd: "../../example"},
 
-		// From different directory where the config is
+		// from different directory where the config is
 		{cmd: "casper -c ../../example/config.yaml build", out: outputFile},
 		{cmd: "casper -c ../../example/config.yaml build -t ../../example/template.yaml", out: outputFile},
 
-		// With abs paths
+		// with abs paths
 		{cmd: fmt.Sprintf("casper -c %v build -t %v", configAbsPath, templateAbsPath), out: outputFile},
 
 		// Diff tests
 
-		// From the same directory where the config is
+		// from the same directory where the config is
 		{cmd: "casper diff", out: noChanges, pwd: "../../example"},
 		{cmd: "casper -c ./config.yaml diff", out: noChanges, pwd: "../../example"},
 		{cmd: "casper -c ../example/config.yaml diff -t ../example/template.yaml", out: noChanges, pwd: "../../example"},
 
-		// // From different directory where the config is
+		// from different directory where the config is
 		{cmd: "casper -c ../../example/config.yaml diff", out: noChanges},
 		{cmd: "casper -c ../../example/config.yaml diff -t ../../example/template.yaml", out: noChanges},
 
-		// With abs paths
+		// with abs paths
 		{cmd: fmt.Sprintf("casper -c %v build -t %v", configAbsPath, templateAbsPath), out: outputFile},
 	}
 
@@ -115,7 +115,7 @@ func TestExample(t *testing.T) {
 	}
 }
 
-// getStdout runs a function and returns the stdout from it
+// Runs a function and returns the stdout from it.
 func getStdout(t *testing.T, f func()) string {
 	old := os.Stdout // keep backup of the real stdout
 	defer func() { os.Stdout = old }()
@@ -125,8 +125,7 @@ func getStdout(t *testing.T, f func()) string {
 	}
 	os.Stdout = w
 
-	// execute the main function
-	f()
+	f() // executes the main function
 
 	outC := make(chan string)
 	// copy the output in a separate goroutine so printing can't block indefinitely

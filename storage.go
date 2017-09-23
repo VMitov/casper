@@ -1,6 +1,6 @@
 package casper
 
-// Storage is interface for storages
+// Storage is interface for storages.
 type Storage interface {
 	String(format string) (string, error)
 	GetChanges(config []byte, format, key string) (Changes, error)
@@ -8,7 +8,7 @@ type Storage interface {
 	Push(cs Changes) error
 }
 
-// Changes is interface for changes
+// Changes is interface for changes.
 type Changes interface {
 	Len() int
 }

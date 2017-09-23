@@ -18,7 +18,7 @@ type Storage struct {
 	path string
 }
 
-// New returns new file storage
+// New returns new file storage.
 func New(path string) *Storage {
 	return &Storage{path: path}
 }
@@ -32,7 +32,7 @@ func (s Storage) String(format string) (string, error) {
 	return string(data), nil
 }
 
-// GetChanges returns changes between the config and the Storage content
+// GetChanges returns changes between the config and the Storage content.
 func (s Storage) GetChanges(config []byte, format, key string) (casper.Changes, error) {
 	data, err := ioutil.ReadFile(s.path)
 	if err != nil {
@@ -45,7 +45,7 @@ func (s Storage) GetChanges(config []byte, format, key string) (casper.Changes, 
 	return &changes{data, config}, nil
 }
 
-// Diff returns the visual representation of the changes
+// Diff returns the visual representation of the changes.
 func (s Storage) Diff(cs casper.Changes, pretty bool) string {
 	if cs.Len() == 0 {
 		return ""
@@ -60,7 +60,7 @@ func (s Storage) Diff(cs casper.Changes, pretty bool) string {
 	return fmt.Sprintf("-%v\n+%v", string(c.old), string(c.new))
 }
 
-// Push changes to the storage
+// Push changes to the storage.
 func (s Storage) Push(cs casper.Changes) error {
 	c := cs.(*changes)
 
@@ -79,13 +79,11 @@ func (s Storage) Push(cs casper.Changes) error {
 	return nil
 }
 
-// changes is a representation of file changes
 type changes struct {
 	old []byte
 	new []byte
 }
 
-// Len represents the quantity of file changes
 func (c changes) Len() int {
 	if len(c.old) == 0 && len(c.new) == 0 {
 		return 0
