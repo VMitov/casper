@@ -237,12 +237,7 @@ func diffAction(c *cli.Context) error {
 		return errors.Wrap(err, "building the source failed")
 	}
 
-	templateName := ctx.template.Name()
-	templateNameSlice := strings.Split(templateName, ".")
-	format := templateNameSlice[len(templateNameSlice)-1]
-	// default storage format
-
-	changes, err := ctx.storage.GetChanges(out, format, c.String("key"))
+	changes, err := ctx.storage.GetChanges(out, getFormat(ctx), c.String("key"))
 	if err != nil {
 		return errors.Wrap(err, "getting changes failed")
 	}
@@ -272,12 +267,7 @@ func pushAction(c *cli.Context) error {
 		return errors.Wrap(err, "building the source failed")
 	}
 
-	templateName := ctx.template.Name()
-	templateNameSlice := strings.Split(templateName, ".")
-	format := templateNameSlice[len(templateNameSlice)-1]
-	// default storage format
-
-	changes, err := ctx.storage.GetChanges(out, format, c.String("key"))
+	changes, err := ctx.storage.GetChanges(out, getFormat(ctx), c.String("key"))
 	if err != nil {
 		return errors.Wrap(err, "getting changes failed")
 	}
@@ -324,6 +314,12 @@ func withStorage(ctx *context, c *cli.Context) error {
 	}
 
 	return nil
+}
+
+func getFormat(ctx *context) string {
+	templateName := ctx.template.Name()
+	templateNameSlice := strings.Split(templateName, ".")
+	return templateNameSlice[len(templateNameSlice)-1]
 }
 
 func strChanges(cs casper.Changes, key string, s casper.Storage, pretty bool) string {

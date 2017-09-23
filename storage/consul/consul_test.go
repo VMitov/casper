@@ -87,7 +87,7 @@ func TestConsulStorageString(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &Storage{&kvMock{list: tc.list, listErr: tc.listErr}, []string{"jsonraw"}, ""}
+			s := &Storage{&kvMock{list: tc.list, listErr: tc.listErr}, ""}
 			str, err := s.String("jsonraw")
 			if err != tc.err {
 				t.Fatalf("Got %v; want %v", err, tc.err)
@@ -147,9 +147,9 @@ func TestConsulStoragePush(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &Storage{&kvMock{list: tc.list}, []string{"jsonraw	"}, "_ignore"}
+			s := &Storage{&kvMock{list: tc.list}, "_ignore"}
 
-			cs, err := s.GetChanges([]byte(tc.config), "jsonraw", "")
+			cs, err := s.GetChanges([]byte(tc.config), "json", "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -189,45 +189,6 @@ func TestConsulStoragePush(t *testing.T) {
 				}
 			}
 
-		})
-	}
-}
-
-func TestConsulStorageFormats(t *testing.T) {
-	testCases := []struct {
-		formats []string
-		fmt     string
-		valid   bool
-		def     string
-	}{
-		{
-			[]string{"fmt1", "fmt2"},
-			"fmt1", true,
-			"fmt1",
-		},
-		{
-			[]string{"fmt1", "fmt2"},
-			"fmt2", true,
-			"fmt1",
-		},
-		{
-			[]string{"fmt1", "fmt2"},
-			"fmt3", false,
-			"fmt1",
-		},
-	}
-
-	for i, tc := range testCases {
-		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &Storage{&kvMock{}, tc.formats, ""}
-
-			if s.FormatIsValid(tc.fmt) != tc.valid {
-				t.Errorf("%v should have been valid:%v", tc.fmt, tc.valid)
-			}
-
-			if s.DefaultFormat() != tc.def {
-				t.Errorf("Default format should have been %v, not %v", tc.def, s.DefaultFormat())
-			}
 		})
 	}
 }

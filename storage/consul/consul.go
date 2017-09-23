@@ -21,13 +21,9 @@ type kv interface {
 	Delete(key string, w *api.WriteOptions) (*api.WriteMeta, error)
 }
 
-var consulFormats = []string{"json", "yaml", "jsonraw"}
-
 // Storage is an implementation of the storage interface that stores in Consul KV.
 type Storage struct {
-	kv kv
-
-	formats   []string
+	kv        kv
 	ignoreVal string
 }
 
@@ -53,7 +49,7 @@ func New(addr string) (casper.Storage, error) {
 		return nil, errors.Wrap(err, "creating Consul client failed")
 	}
 
-	return &Storage{client.KV(), consulFormats, ignore}, nil
+	return &Storage{client.KV(), ignore}, nil
 }
 
 func (s Storage) String(format string) (string, error) {
@@ -62,21 +58,6 @@ func (s Storage) String(format string) (string, error) {
 		return "", err
 	}
 	return kvPairsToString(pairs, format), nil
-}
-
-// FormatIsValid returns if the format is valid for this storage
-func (s Storage) FormatIsValid(format string) bool {
-	for _, f := range s.formats {
-		if format == f {
-			return true
-		}
-	}
-	return false
-}
-
-// DefaultFormat returns the default format
-func (s Storage) DefaultFormat() string {
-	return s.formats[0]
 }
 
 // GetChanges returns changes between the config and the Storage content

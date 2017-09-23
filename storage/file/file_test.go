@@ -128,40 +128,6 @@ func TestFileStoragePush(t *testing.T) {
 	}
 }
 
-func TestFileStorageFormats(t *testing.T) {
-	testCases := []struct {
-		fmt string
-		def string
-	}{
-		{
-			"fmt1",
-			"string",
-		},
-		{
-			"fmt2",
-			"string",
-		},
-		{
-			"fmt3",
-			"string",
-		},
-	}
-
-	for i, tc := range testCases {
-		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			s := &Storage{}
-
-			if !s.FormatIsValid(tc.fmt) {
-				t.Errorf("%v should have been valid", tc.fmt)
-			}
-
-			if s.DefaultFormat() != tc.def {
-				t.Errorf("Default format should have been %v, not %v", tc.def, s.DefaultFormat())
-			}
-		})
-	}
-}
-
 // prepareTmpFile create a file with the given content
 func prepareTmpFile(name string, data []byte) (*os.File, error) {
 	f, err := os.Create(name)

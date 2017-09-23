@@ -39,7 +39,7 @@ func getFileSource(u *url.URL) (*source.Source, error) {
 
 	s, err := source.NewFileSource(r, format)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating new file source failed")
+		return nil, errors.Wrapf(err, "creating new file source %v failed", u)
 	}
 
 	return s, nil

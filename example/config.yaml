@@ -1,6 +1,6 @@
 template: template.yaml
 storage: file
-file-path: output.yaml 
+file-path: output.yaml
 sources:
   - placeholder1=val1
   - file://source.yaml

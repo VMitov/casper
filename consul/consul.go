@@ -85,7 +85,7 @@ func stringToMap(config []byte, format string) (map[string]string, error) {
 	var err error
 	j := &map[string]interface{}{}
 	switch format {
-	case "json", "jsonraw":
+	case "json":
 		err = json.Unmarshal(config, j)
 	case "yaml", "yml":
 		err = yaml.Unmarshal(config, j)

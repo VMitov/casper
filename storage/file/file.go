@@ -32,16 +32,6 @@ func (s Storage) String(format string) (string, error) {
 	return string(data), nil
 }
 
-// FormatIsValid returns if the format is valid for this storage
-func (s Storage) FormatIsValid(format string) bool {
-	return true
-}
-
-// DefaultFormat returns the default format
-func (s Storage) DefaultFormat() string {
-	return "string"
-}
-
 // GetChanges returns changes between the config and the Storage content
 func (s Storage) GetChanges(config []byte, format, key string) (casper.Changes, error) {
 	data, err := ioutil.ReadFile(s.path)
