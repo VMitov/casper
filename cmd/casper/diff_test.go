@@ -1,26 +1,26 @@
-package cmd
+package main
 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/miracl/casper/lib/caspertest"
+	"github.com/miracl/casper/caspertest"
 )
 
-func TestPushRun(t *testing.T) {
+func TestDiffRun(t *testing.T) {
 	testCases := []struct {
 		storage string
 		tmpl    string
+		key     string
 		sources []map[string]interface{}
-		force   bool
 		output  string
 	}{
 		{
-			"",
+			`key: oldval`,
 			`key: {{.placeholder}}`,
+			"",
 			[]map[string]interface{}{
 				{
 					"type": "config",
@@ -29,15 +29,14 @@ func TestPushRun(t *testing.T) {
 					},
 				},
 			},
-			true,
 			"" +
-				"-\n" +
-				"+key: val\n" +
-				"Applying changes...\n",
+				"-key: oldval\n" +
+				"+key: val\n",
 		},
 		{
+			`key: val`,
+			`key: {{.placeholder}}`,
 			"",
-			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
 				{
 					"type": "config",
@@ -46,25 +45,37 @@ func TestPushRun(t *testing.T) {
 					},
 				},
 			},
-			false,
-			"" +
-				"-\n" +
-				"+key: val\n" +
-				"Continue[y/N]: Canceled\n",
-		},
-		{
-			"key: val",
-			`key: {{.placeholder}}`,
-			[]map[string]interface{}{
-				{
-					"type": "config",
-					"vals": map[string]string{
-						"placeholder": "val",
-					},
-				},
-			},
-			true,
 			"No changes\n",
+		},
+		{
+			`key: oldval`,
+			`key: {{.placeholder}}`,
+			"key",
+			[]map[string]interface{}{
+				{
+					"type": "config",
+					"vals": map[string]string{
+						"placeholder": "val",
+					},
+				},
+			},
+			"" +
+				"-key: oldval\n" +
+				"+key: val\n",
+		},
+		{
+			`key: val`,
+			`key: {{.placeholder}}`,
+			"key",
+			[]map[string]interface{}{
+				{
+					"type": "config",
+					"vals": map[string]string{
+						"placeholder": "val",
+					},
+				},
+			},
+			"No changes for key key\n",
 		},
 	}
 
@@ -85,7 +96,7 @@ func TestPushRun(t *testing.T) {
 			defer os.Remove(configf.Name())
 
 			out := caspertest.GetStdout(t, func() {
-				err = pushRun(tmpf.Name(), "jsonraw", "", tc.sources, "file", map[string]interface{}{"path": configf.Name()}, tc.force, false)
+				err = diffRun(tmpf.Name(), "yaml", tc.key, tc.sources, "file", map[string]interface{}{"path": configf.Name()}, false)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -98,16 +109,15 @@ func TestPushRun(t *testing.T) {
 	}
 }
 
-func TestPush(t *testing.T) {
+func TestDiff(t *testing.T) {
 	testCases := []struct {
 		storage string
 		tmpl    string
 		sources []map[string]interface{}
 		output  string
-		result  string
 	}{
 		{
-			"",
+			`key: oldval`,
 			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
 				{
@@ -118,13 +128,11 @@ func TestPush(t *testing.T) {
 				},
 			},
 			"" +
-				"-\n" +
-				"+key: val\n" +
-				"Applying changes...\n",
-			`key: val`,
+				"-key: oldval\n" +
+				"+key: val\n",
 		},
 		{
-			"key: val",
+			`key: val`,
 			`key: {{.placeholder}}`,
 			[]map[string]interface{}{
 				{
@@ -135,7 +143,6 @@ func TestPush(t *testing.T) {
 				},
 			},
 			"No changes\n",
-			`key: val`,
 		},
 	}
 
@@ -177,22 +184,13 @@ func TestPush(t *testing.T) {
 			}
 			defer os.Remove(cfgf.Name())
 
-			os.Args = []string{"casper", "push", "-c", cfgf.Name(), "-p", "--force"}
+			os.Args = []string{"casper", "diff", "-c", cfgf.Name(), "-p"}
 			out := caspertest.GetStdout(t, func() {
-				pushCmd.Execute()
+				diffCmd.Execute()
 			})
 
 			if out != tc.output {
 				t.Errorf("Got %#v; Want %#v", out, tc.output)
-			}
-
-			// Check the storage is correct
-			result, err := ioutil.ReadFile(strf.Name())
-			if err != nil {
-				t.Fatal(err)
-			}
-			if string(result) != tc.result {
-				t.Errorf("Got %#v; Want %#v", string(result), tc.result)
 			}
 		})
 	}

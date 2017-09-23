@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	casper "github.com/miracl/casper/lib"
+	casper "github.com/miracl/casper"
 )
 
 var errFormat = errors.New("Sources invalid format")

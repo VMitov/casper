@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/miracl/casper/lib/diff"
+	"github.com/miracl/casper/diff"
 )
 
 func TestNewConsulStorage(t *testing.T) {

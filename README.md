@@ -12,7 +12,7 @@ Casper is a simple tool for managing configurations as code where the structure 
 ## Installation
 
 ```
-go get -u github.com/miracl/casper
+go get -u github.com/miracl/casper/cmd/casper
 ```
 
 ## Example
