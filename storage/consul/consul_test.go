@@ -3,6 +3,7 @@ package consul
 import (
 	"bytes"
 	"errors"
+	"flag"
 	"fmt"
 	"sort"
 	"strings"
@@ -11,6 +12,9 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/miracl/casper/diff"
 )
+
+// It is defined in each package so you can run `go test ./...`
+var full = flag.Bool("full", false, "Run all tests including integration")
 
 func TestNewConsulStorage(t *testing.T) {
 	testCases := []struct {

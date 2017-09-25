@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,7 +10,14 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/miracl/casper/storage/consul"
 )
+
+// It is defined in each package so you can run `go test ./...`
+var full = flag.Bool("full", false, "Run all tests including integration")
+
+var consulAddr = flag.String("consul-addr", "http://172.17.0.1:8500/?token=the_one_ring", "Consul instance to run tests agains")
 
 func TestExample(t *testing.T) {
 	wd, err := os.Getwd()
@@ -110,6 +118,94 @@ func TestExample(t *testing.T) {
 				t.Errorf("\n%vtest:/$ %v\n%v;\nExpected:\n%v;", tc.pwd, tc.cmd, out, tc.out)
 			}
 		})
+	}
+}
+
+func TestConsulIntegration(t *testing.T) {
+	if !*full {
+		t.SkipNow()
+	}
+
+	// Cleanup
+	defer func() {
+		s, err := consul.New(*consulAddr)
+		if err != nil {
+			t.Fatalf("cleanup failed: %v", err)
+		}
+
+		c, err := s.GetChanges([]byte{}, "yaml", "")
+		if err != nil {
+			t.Fatalf("cleanup failed: %v", err)
+		}
+
+		err = s.Push(c)
+		if err != nil {
+			t.Fatalf("cleanup failed: %v", err)
+		}
+	}()
+
+	steps := []struct {
+		cmd string
+		exp string
+	}{
+		{
+			cmd: fmt.Sprintf("casper fetch -format yaml -storage consul -consul-addr %v", *consulAddr),
+			exp: "{}\n\n",
+		},
+
+		{
+			cmd: "casper diff -plain" +
+				" -storage consul -consul-addr " + *consulAddr +
+				" -template ../../example/template.yaml -s placeholder1=val1 -s placeholder2=val2",
+			exp: "+key1=val1\n+key2=val2\n\n",
+		},
+		{
+			cmd: "casper push -plain -force" +
+				" -storage consul -consul-addr " + *consulAddr +
+				" -template ../../example/template.yaml -s placeholder1=val1 -s placeholder2=val2",
+			exp: "+key1=val1\n+key2=val2\n\nApplying changes...\n",
+		},
+		{
+			cmd: "casper diff -plain" +
+				" -storage consul -consul-addr " + *consulAddr +
+				" -template ../../example/template.yaml -s placeholder1=val1 -s placeholder2=val2",
+			exp: "No changes\n",
+		},
+		{
+			cmd: "casper fetch -format yaml -storage consul -consul-addr " + *consulAddr,
+			exp: "key1: val1\nkey2: val2\n\n",
+		},
+
+		{
+			cmd: "casper diff -plain" +
+				" -storage consul -consul-addr " + *consulAddr +
+				" -template ../../example/template.yaml -s placeholder1=diffval1 -s placeholder2=diffval2",
+			exp: "-key1=val1\n+key1=diffval1\n-key2=val2\n+key2=diffval2\n\n",
+		},
+		{
+			cmd: "casper push -plain -force" +
+				" -storage consul -consul-addr " + *consulAddr +
+				" -template ../../example/template.yaml -s placeholder1=diffval1 -s placeholder2=diffval2",
+			exp: "-key1=val1\n+key1=diffval1\n-key2=val2\n+key2=diffval2\n\nApplying changes...\n",
+		},
+		{
+			cmd: "casper diff -plain" +
+				" -storage consul -consul-addr " + *consulAddr +
+				" -template ../../example/template.yaml -s placeholder1=diffval1 -s placeholder2=diffval2",
+			exp: "No changes\n",
+		},
+		{
+			cmd: "casper fetch -format yaml -storage consul -consul-addr " + *consulAddr,
+			exp: "key1: diffval1\nkey2: diffval2\n\n",
+		},
+	}
+
+	for i, step := range steps {
+		os.Args = strings.Split(step.cmd, " ")
+		out := getStdout(t, main)
+		if out != step.exp {
+			t.Errorf("\nstep%v:/$ %v\n%v;\nExpected:\n%v;", i, step.cmd, out, step.exp)
+		}
 	}
 }
 
