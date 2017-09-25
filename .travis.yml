@@ -1,5 +1,8 @@
 language: go
 
+services:
+  - docker
+
 jobs:
   include:
 
@@ -8,12 +11,18 @@ jobs:
       os: linux
       install:
         - go get github.com/golang/lint/golint
+        - go get github.com/onsi/ginkgo/ginkgo
+        - go get github.com/modocache/gover
         - go get github.com/mattn/goveralls
       before_script:
         - go vet ./...
         - test -z "$(gofmt -s -l . 2>&1 | grep -v vendor | tee /dev/stderr)"
         - golint -set_exit_status $(go list ./...)
-      script: goveralls -service=travis-ci
+        - docker-compose up -d
+      script:
+        - ginkgo -r -cover -coverpkg=./... -race -- -full
+        - gover
+        - goveralls -coverprofile=gover.coverprofile -service=travis-ci
 
     - &test
       stage: test alternative environments
