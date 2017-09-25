@@ -2,12 +2,16 @@ package consul
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/hashicorp/consul/api"
 )
+
+// It is defined in each package so you can run `go test ./...`
+var full = flag.Bool("full", false, "Run all tests including integration")
 
 func TestConsulToMap(t *testing.T) {
 	testCases := []struct {
