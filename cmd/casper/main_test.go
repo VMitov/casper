@@ -58,6 +58,10 @@ func TestExample(t *testing.T) {
 		// without config file
 		{cmd: "casper build -t ../../example/template.yaml -s placeholder1=val1 -s placeholder2=val2", out: outputFile},
 
+		// without sources
+		{cmd: "casper build -t ../../example/output.yaml", out: outputFile},
+		{cmd: "casper diff -t ../../example/output.yaml -storage file -file-path ../../example/output.yaml", out: noChanges},
+
 		// with overwritten placeholders so it there are differences
 		{cmd: "casper diff -s placeholder1=val1a -s placeholder2=val2a --plain", out: changes, pwd: "../../example"},
 		{cmd: "casper push -s placeholder1=val1a -s placeholder2=val2a --plain --force", out: changes + applyingChanges, pwd: "../../example"},
