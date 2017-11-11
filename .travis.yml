@@ -1,14 +1,13 @@
 language: go
 
-services:
-  - docker
-
 jobs:
   include:
 
     - stage: test
       go: 1.x
       os: linux
+      services:
+        - docker
       install:
         - go get github.com/golang/lint/golint
         - go get github.com/onsi/ginkgo/ginkgo
