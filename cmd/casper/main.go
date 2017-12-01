@@ -78,7 +78,7 @@ func newApp() *cli.App {
 			EnvVars: []string{"CASPER_TEMPLATE"},
 		}),
 		newSourcesSliceFlag(&cli.StringSliceFlag{
-			Name: "sources", Aliases: []string{"s"},
+			Name: "sources", Aliases: []string{"s", "source"},
 			Usage:   "[key=value, file://file.yaml]",
 			Value:   cli.NewStringSlice(),
 			EnvVars: []string{"CASPER_SOURCES"},
