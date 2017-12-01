@@ -322,11 +322,40 @@ func TestGetChanges(t *testing.T) {
 			},
 			true,
 		},
+		{
+			api.KVPairs{
+				&api.KVPair{Key: "key1", Value: []byte("val1")},
+				&api.KVPair{Key: "key3/ignoredSubKey", Value: []byte("whatever")},
+				&api.KVPair{Key: "ignoredKey", Value: []byte("whatever")},
+				&api.KVPair{Key: "ignoredFolder/key1", Value: []byte("whatever")},
+				&api.KVPair{Key: "ignoredFolder/key2", Value: []byte("whatever")},
+			},
+			`{
+				"key1": "val1",
+				"key2": "val2",
+				"key3": {
+					"_value": "val3",
+					"ignoredSubKey": "_ignore",
+					"subKey": {
+						"_value": "_ignore",
+						"key3SubKey": "whatever"
+					}
+				},
+				"ignoredKey": "_ignore",
+				"ignoredFolder": "_ignore"
+			}`,
+			"json", "",
+			diff.KVChanges{
+				diff.NewAdd("key2", "val2"),
+				diff.NewAdd("key3/", "val3"),
+			},
+			true,
+		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Case%v", i), func(t *testing.T) {
-			ch, err := getChanges(tc.pairs, []byte(tc.config), tc.format, tc.key, "")
+			ch, err := getChanges(tc.pairs, []byte(tc.config), tc.format, tc.key, DefaultIgnoreVal)
 
 			if tc.ok != (err == nil) {
 				if err != nil {

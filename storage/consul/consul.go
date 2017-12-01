@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/hashicorp/consul/api"
 	"github.com/miracl/casper"
@@ -12,6 +13,10 @@ import (
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )
+
+// DefaultIgnoreVal is the default value that need to be set for a key to be
+// ignored.
+const DefaultIgnoreVal = "_ignore"
 
 // kv is interface that Consul KV type implements.
 // Defined and used mainly for testing.
@@ -49,6 +54,9 @@ func New(addr string) (*Storage, error) {
 		return nil, errors.Wrap(err, "creating Consul client failed")
 	}
 
+	if ignore == "" {
+		ignore = DefaultIgnoreVal
+	}
 	return &Storage{client.KV(), ignore}, nil
 }
 
@@ -124,10 +132,13 @@ func getChanges(pairs api.KVPairs, config []byte, format, key, ignoreVal string)
 		return nil, err
 	}
 
+	ignoredPaths := []string{}
+
 	kvChanges := diff.KVChanges{}
 	for _, c := range consulChanges {
 		// skip ignored pairs
 		if ignoreVal != "" && c.NewVal == ignoreVal {
+			ignoredPaths = append(ignoredPaths, c.Key)
 			continue
 		}
 
@@ -146,5 +157,24 @@ func getChanges(pairs api.KVPairs, config []byte, format, key, ignoreVal string)
 
 	}
 
-	return kvChanges, nil
+	// check for ignored folders
+	notIgnoreChanges := diff.KVChanges{}
+	for _, c := range kvChanges {
+		if isPathIgnored(c.Key(), ignoredPaths) {
+			continue
+		}
+		notIgnoreChanges = append(notIgnoreChanges, c)
+	}
+
+	return notIgnoreChanges, nil
+}
+
+func isPathIgnored(path string, ignoredPaths []string) bool {
+	for _, p := range ignoredPaths {
+		if strings.HasPrefix(path, p) {
+			return true
+		}
+	}
+
+	return false
 }

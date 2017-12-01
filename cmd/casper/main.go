@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/miracl/casper"
+	"github.com/miracl/casper/storage/consul"
 	"github.com/pkg/errors"
 	cli "gopkg.in/urfave/cli.v2"
 	"gopkg.in/urfave/cli.v2/altsrc"
@@ -35,9 +36,8 @@ const mascot = `
 	            '..'`
 
 const (
-	configFlag       = "config"
-	defaultPath      = "config.yaml"
-	defaultIgnoreVal = "_ignore"
+	configFlag  = "config"
+	defaultPath = "config.yaml"
 )
 
 func newApp() *cli.App {
@@ -56,8 +56,8 @@ func newApp() *cli.App {
 		}),
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    "consul-addr",
-			Usage:   fmt.Sprintf("http://127.0.0.1:8500/?ignore=%v&token=aclToken", defaultIgnoreVal),
-			Value:   fmt.Sprintf("http://127.0.0.1:8500/?ignore=%v", defaultIgnoreVal),
+			Usage:   fmt.Sprintf("http://127.0.0.1:8500/?ignore=%v&token=aclToken", consul.DefaultIgnoreVal),
+			Value:   fmt.Sprintf("http://127.0.0.1:8500/?ignore=%v", consul.DefaultIgnoreVal),
 			EnvVars: []string{"CASPER_CONSUL_ADDR"},
 		}),
 	}
