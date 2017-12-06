@@ -51,12 +51,16 @@ func TestExample(t *testing.T) {
 		out  string // expected output
 		pwd  string // change the directory relative to working dir if set
 		copy bool   // copy the example folder in temporary dir if set
+		err  string // string representation of expected error
 	}{
 		{cmd: "casper fetch", out: outputFile + "\n", pwd: "../../example"},
 		{cmd: "casper diff -key somekey", out: "No changes for key somekey\n", pwd: "../../example"},
 
 		// without config file
 		{cmd: "casper build -t ../../example/template.yaml -s placeholder1=val1 -s placeholder2=val2", out: outputFile},
+
+		// with bad source
+		{cmd: "casper build -t ../../example/template.yaml -s placeholder1=val1 -s source.yaml", out: outputFile, err: "creating context failed: invalid source: source.yaml"},
 
 		// without sources
 		{cmd: "casper build -t ../../example/output.yaml", out: outputFile},
@@ -111,6 +115,15 @@ func TestExample(t *testing.T) {
 					t.Fatal(err)
 				}
 			}()
+
+			if tc.err != "" {
+				app := newApp()
+				err := app.Run(strings.Split(tc.cmd, " "))
+				if err.Error() != tc.err {
+					t.Fatalf("\nunexpected error: %v\n\texpected: %v", err, tc.err)
+				}
+				return
+			}
 
 			if tc.pwd != "" {
 				os.Chdir(tc.pwd)
