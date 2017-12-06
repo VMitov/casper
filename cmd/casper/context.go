@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/miracl/casper"
 	"github.com/miracl/casper/source"
@@ -46,6 +47,10 @@ func (c *context) withSources(sources []string) error {
 		}
 
 		if u.Scheme == "" {
+			if !strings.Contains(s, "=") {
+				return fmt.Errorf("invalid source: %v", s)
+			}
+
 			// default to config
 			u = &url.URL{
 				Scheme:   configScheme,
