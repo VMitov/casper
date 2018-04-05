@@ -56,8 +56,14 @@ func TestMultiSourcer(t *testing.T) {
 					"key1": "var3",
 				}),
 			},
-			nil,
-			false,
+			map[string]interface{}{
+				"key1": []interface{}{
+					"var1",
+					"var3",
+				},
+				"key2": "var2",
+			},
+			true,
 		},
 	}
 
